@@ -23,6 +23,4 @@ npm run dev
 # → http://localhost:5173
 ```
 
-## .env Dosyaları
-- `backend/.env` → SECRET_KEY değerini değiştir
-- `frontend/.env` → VITE_API_URL zaten ayarlı (localhost:8000)
+
