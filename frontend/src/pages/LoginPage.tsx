@@ -17,7 +17,7 @@ export default function LoginPage() {
   const validate = () => {
     const e: Record<string, string> = {}
     if (!form.email) e.email = 'E-posta zorunludur.'
-    if (!form.password) e.password = 'Şifre zorunludur.'
+    if (!form.password) e.password = 'Sifre zorunludur.'
     return e
   }
 
@@ -36,23 +36,43 @@ export default function LoginPage() {
           <h1 className="font-display text-3xl font-bold text-stone-900 mb-2">Welcome back</h1>
           <p className="text-stone-500 text-sm">Sign in to your account</p>
         </div>
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            <FormField label="Email address" htmlFor="email" required>
-              <Input id="email" type="email" placeholder="you@example.com" autoComplete="email"
-                value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} error={fieldErrors.email} />
-            </FormField>
-            <FormField label="Password" htmlFor="password" required>
-              <Input id="password" type="password" placeholder="••••••••" autoComplete="current-password"
-                value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} error={fieldErrors.password} />
-            </FormField>
-            <Button type="submit" className="w-full mt-2" isLoading={isLoading}>Sign In</Button>
-          </form>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-stone-200" /></div>
-            <div className="relative flex justify-center text-xs"><span className="px-3 bg-white text-stone-400">no account yet?</span></div>
+        {error && <Alert variant="error" className="mb-4">{error}</Alert>}
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <FormField label="Email address" htmlFor="email" required>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              error={fieldErrors.email}
+            />
+          </FormField>
+          <FormField label="Password" htmlFor="password" required>
+            <Input
+              id="password"
+              type="password"
+              placeholder="********"
+              autoComplete="current-password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              error={fieldErrors.password}
+            />
+          </FormField>
+          <Button type="submit" className="w-full mt-2" isLoading={isLoading}>Sign In</Button>
+        </form>
+        <div className="relative mt-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-stone-200" />
           </div>
-          <Button variant="secondary" className="w-full" onClick={() => navigate('/register')}>Create Free Account</Button>
+          <div className="relative flex justify-center text-xs">
+            <span className="px-3 bg-white text-stone-400">no account yet?</span>
+          </div>
         </div>
+        <Button variant="secondary" className="w-full mt-4" onClick={() => navigate('/register')}>
+          Create Free Account
+        </Button>
       </div>
     </AuthLayout>
   )
