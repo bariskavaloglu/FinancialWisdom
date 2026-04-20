@@ -29,7 +29,7 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
         <div>
           <h1 className="font-display text-2xl font-medium text-stone-900 mb-1">Sistem Konfigürasyonu</h1>
-          <p className="text-stone-500 text-sm">Faktör ağırlıkları ve tahsisat kuralları</p>
+          <p className="text-stone-500 text-sm">Factor weights and allocation rules</p>
         </div>
 
         {saved && <Alert variant="success">Konfigürasyon kaydedildi.</Alert>}
@@ -39,13 +39,13 @@ export default function AdminPage() {
           {/* Factor weights */}
           <div className="card space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest">Faktör Ağırlıkları (Katman 2)</h3>
+              <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest">Factor Weights (Katman 2)</h3>
               <span className={`text-xs font-mono px-2 py-0.5 rounded ${Math.abs(fwSum - 1) < 0.01 ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
                 Toplam: {fwSum.toFixed(2)} {Math.abs(fwSum - 1) < 0.01 ? '✓' : '✗'}
               </span>
             </div>
             {(['momentum', 'value', 'quality', 'lowVolatility'] as const).map((key) => {
-              const labels = { momentum: 'Momentum', value: 'Değer', quality: 'Kalite', lowVolatility: 'Düşük Volatilite' }
+              const labels = { momentum: 'Momentum', value: 'Value', quality: 'Quality', lowVolatility: 'Low Volatility' }
               return (
                 <div key={key} className="space-y-1.5">
                   <div className="flex justify-between text-sm">
@@ -68,7 +68,7 @@ export default function AdminPage() {
             {[
               { label: 'yfinance Önbellek TTL (dakika)', key: 'yfinanceCacheTtlMinutes' as const, min: 1, max: 60 },
               { label: 'Min. Veri Tamlığı (%)', key: 'minDataCompleteness' as const, min: 50, max: 100 },
-              { label: 'Sınıf Başına Max Enstrüman', key: 'maxInstrumentsPerClass' as const, min: 1, max: 20 },
+              { label: 'Max Instruments Per Class', key: 'maxInstrumentsPerClass' as const, min: 1, max: 20 },
             ].map(({ label, key, min, max }) => (
               <div key={key} className="space-y-1.5">
                 <label className="label">{label}</label>
@@ -82,7 +82,7 @@ export default function AdminPage() {
             <div className="space-y-2">
               {[
                 { label: 'Redis önbelleğini etkinleştir', key: 'enableRedisCache' as const },
-                { label: 'API hatasında fallback kullan', key: 'useFallbackOnApiFailure' as const },
+                { label: 'Use fallback on API failure', key: 'useFallbackOnApiFailure' as const },
               ].map(({ label, key }) => (
                 <label key={key} className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox"
@@ -104,7 +104,7 @@ export default function AdminPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-stone-400 border-b border-stone-200">
-                  {['Profil', 'Vade', 'Hisse %', 'Kripto %', 'Emtia %', 'Nakit %'].map((h) => (
+                  {['Profile', 'Horizon', 'Equity %', 'Crypto %', 'Commodity %', 'Cash %'].map((h) => (
                     <th key={h} className="text-left pb-2 pr-4">{h}</th>
                   ))}
                 </tr>
@@ -136,7 +136,7 @@ export default function AdminPage() {
 
         <div className="flex gap-3">
           <Button variant="secondary" onClick={() => setForm(data!)}>İptal</Button>
-          <Button onClick={() => save(form)} isLoading={saving}>Kaydet</Button>
+          <Button onClick={() => save(form)} isLoading={saving}>Save</Button>
         </div>
       </div>
     </AppLayout>

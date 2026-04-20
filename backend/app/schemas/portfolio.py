@@ -16,9 +16,11 @@ class Instrument(BaseModel):
     name: str
     assetClass: str
     exchange: str
+    currency: str = "USD"
     currentPrice: float
     isActive: bool
     factorScore: FactorScore | None = None
+    whySelected: list[str] = []
 
 
 class AssetAllocation(BaseModel):
@@ -40,6 +42,7 @@ class Portfolio(BaseModel):
     allocations: list[AssetAllocation]
     portfolioScore: int
     expectedVolatility: float
+    expectedReturn: float = 0.0
     explanation: str | None = None
 
 

@@ -25,8 +25,8 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
-                <NavLink to="/questionnaire" className={navLinkClass}>Anket</NavLink>
-                <NavLink to="/compare" className={navLinkClass}>Karşılaştır</NavLink>
+                <NavLink to="/questionnaire" className={navLinkClass}>Questionnaire</NavLink>
+                <NavLink to="/compare" className={navLinkClass}>Compare</NavLink>
                 {user?.role === 'admin' && <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>}
               </>
             ) : (
@@ -40,7 +40,7 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <span className="hidden sm:block text-sm text-stone-500">{user?.fullName?.split(' ')[0]}</span>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>Çıkış</Button>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>Logout</Button>
               </>
             ) : (
               <>

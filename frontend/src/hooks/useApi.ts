@@ -37,7 +37,7 @@ export function useApi<T>(
       const result = await fetcherRef.current()
       setState({ data: result, isLoading: false, error: null, isStale: false })
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Bir hata oluştu.'
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred.'
       setState((prev) => ({ ...prev, isLoading: false, error: msg }))
     }
   }, [])
@@ -77,7 +77,7 @@ export function useMutation<TInput, TOutput>(
         callbacks?.onSuccess?.(result)
         return result
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Bir hata oluştu.'
+        const msg = err instanceof Error ? err.message : 'An unexpected error occurred.'
         setError(msg)
         callbacks?.onError?.(msg)
         throw err

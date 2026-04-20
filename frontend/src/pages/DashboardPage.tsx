@@ -10,11 +10,11 @@ import type { AssetClass, Portfolio } from '@/types'
 // ─── Asset class display config ───────────────────────────────────────────────
 
 const ASSET_CONFIG: Record<AssetClass, { label: string; color: string }> = {
-  BIST_EQUITY:    { label: 'BIST Hisseleri',    color: '#1c1917' },
+  BIST_EQUITY:    { label: 'BIST Equities',      color: '#1c1917' },
   SP500_EQUITY:   { label: 'S&P 500 ETF',        color: '#3B82F6' },
-  COMMODITY:      { label: 'Emtialar',            color: '#22C55E' },
-  CRYPTOCURRENCY: { label: 'Kripto Para',         color: '#A78BFA' },
-  CASH_EQUIVALENT:{ label: 'Nakit / Para Piyasası', color: '#6B7280' },
+  COMMODITY:      { label: 'Commodities',         color: '#22C55E' },
+  CRYPTOCURRENCY: { label: 'Cryptocurrency',      color: '#A78BFA' },
+  CASH_EQUIVALENT:{ label: 'Cash / Money Market', color: '#6B7280' },
 }
 
 // ─── Subcomponents ────────────────────────────────────────────────────────────
@@ -30,16 +30,18 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 }
 
 function AllocationPie({ portfolio }: { portfolio: Portfolio }) {
-  const data = portfolio.allocations.map((a) => ({
-    name: ASSET_CONFIG[a.assetClass]?.label ?? a.assetClass,
-    value: a.targetWeight,
-    color: ASSET_CONFIG[a.assetClass]?.color ?? '#888',
-  }))
+  const data = portfolio.allocations
+    .filter((a) => a.targetWeight > 0)
+    .map((a) => ({
+      name: ASSET_CONFIG[a.assetClass]?.label ?? a.assetClass,
+      value: a.targetWeight,
+      color: ASSET_CONFIG[a.assetClass]?.color ?? '#888',
+    }))
 
   return (
     <div className="card">
       <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest mb-4">
-        Varlık Dağılımı
+        Asset Allocation
       </h3>
       <div className="flex flex-col sm:flex-row items-center gap-6">
         <ResponsiveContainer width={180} height={180}>
@@ -51,8 +53,7 @@ function AllocationPie({ portfolio }: { portfolio: Portfolio }) {
             </Pie>
             <Tooltip
               contentStyle={{ background: '#ffffff', border: '1px solid #e7e5e4', borderRadius: 8 }}
-              labelStyle={{ color: '#fff' }}
-              formatter={(v: number) => [`%${v}`, '']}
+              formatter={(v: number) => [`${v}%`, '']}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -63,7 +64,7 @@ function AllocationPie({ portfolio }: { portfolio: Portfolio }) {
                 <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
                 <span className="text-sm text-stone-900/70">{d.name}</span>
               </div>
-              <span className="text-sm font-medium text-stone-900">%{d.value}</span>
+              <span className="text-sm font-medium text-stone-900">{d.value}%</span>
             </div>
           ))}
         </div>
@@ -74,31 +75,54 @@ function AllocationPie({ portfolio }: { portfolio: Portfolio }) {
 
 function InstrumentTable({ portfolio }: { portfolio: Portfolio }) {
   const navigate = useNavigate()
-  const instruments = portfolio.allocations.flatMap((a) =>
-    (a.instruments ?? []).map((inst) => ({ ...inst, assetClass: a.assetClass }))
-  )
+
+  // Build instrument list with per-instrument weight = allocation weight / number of instruments in that class
+  const instruments = portfolio.allocations.flatMap((a) => {
+    const count = a.instruments?.length ?? 1
+    const weightPerInst = count > 0 ? (a.targetWeight / count) : 0
+    return (a.instruments ?? []).map((inst) => ({
+      ...inst,
+      assetClass: a.assetClass,
+      instrumentWeight: weightPerInst,
+    }))
+  })
 
   if (!instruments.length) return null
+
+  const handleDetail = (ticker: string) => {
+    navigate(`/instrument/${encodeURIComponent(ticker)}`)
+  }
 
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest">
-          Seçilen Enstrümanlar
+          Selected Instruments
         </h3>
-        <button className="text-xs text-amber-700 hover:text-amber-700-light transition-colors">
-          CSV İndir
+        <button
+          className="text-xs text-amber-700 hover:underline transition-colors"
+          onClick={() => {
+            const rows = instruments.map(i =>
+              `${i.ticker},${i.name},${ASSET_CONFIG[i.assetClass]?.label},${i.instrumentWeight.toFixed(1)}%,${i.factorScore?.composite ?? '—'}`
+            )
+            const csv = ['Ticker,Name,Class,Weight,Factor Score', ...rows].join('\n')
+            const blob = new Blob([csv], { type: 'text/csv' })
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob)
+            a.download = 'portfolio.csv'; a.click()
+          }}
+        >
+          Download CSV
         </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-xs text-stone-400 uppercase tracking-wider border-b border-stone-200">
-              <th className="text-left pb-3 pr-4">Enstrüman</th>
-              <th className="text-left pb-3 pr-4">Sınıf</th>
-              <th className="text-right pb-3 pr-4">Ağırlık</th>
+              <th className="text-left pb-3 pr-4">Instrument</th>
+              <th className="text-left pb-3 pr-4">Class</th>
+              <th className="text-right pb-3 pr-4">Weight</th>
               <th className="text-right pb-3 pr-4">Momentum</th>
-              <th className="text-right pb-3">Faktör Skoru</th>
+              <th className="text-right pb-3">Factor Score</th>
               <th className="pb-3" />
             </tr>
           </thead>
@@ -106,29 +130,34 @@ function InstrumentTable({ portfolio }: { portfolio: Portfolio }) {
             {instruments.map((inst) => {
               const cfg = ASSET_CONFIG[inst.assetClass]
               const score = inst.factorScore?.composite ?? 0
+              const momentum = inst.factorScore?.momentum ?? null
               return (
                 <tr key={inst.ticker} className="hover:bg-stone-50/30 transition-colors">
                   <td className="py-3 pr-4">
                     <p className="font-medium text-stone-900">{inst.ticker}</p>
-                    <p className="text-xs text-stone-400 truncate max-w-[120px]">{inst.name}</p>
+                    <p className="text-xs text-stone-400 truncate max-w-[140px]">{inst.name}</p>
                   </td>
                   <td className="py-3 pr-4">
-                    <span className="text-xs px-2 py-0.5 rounded-full border font-medium"
-                      style={{ color: cfg?.color, borderColor: `${cfg?.color}40`, background: `${cfg?.color}15` }}>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full border font-medium"
+                      style={{ color: cfg?.color, borderColor: `${cfg?.color}40`, background: `${cfg?.color}15` }}
+                    >
                       {cfg?.label ?? inst.assetClass}
                     </span>
                   </td>
-                  <td className="py-3 pr-4 text-right text-stone-900/70">—</td>
+                  <td className="py-3 pr-4 text-right text-stone-700 font-medium">
+                    {inst.instrumentWeight > 0 ? `${inst.instrumentWeight.toFixed(1)}%` : '—'}
+                  </td>
                   <td className="py-3 pr-4 text-right">
-                    {inst.factorScore ? (
-                      <span className={`text-xs font-medium ${inst.factorScore.momentum >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {inst.factorScore.momentum >= 0 ? '▲' : '▼'} {Math.abs(inst.factorScore.momentum).toFixed(1)}%
+                    {momentum !== null ? (
+                      <span className={`text-xs font-medium ${momentum >= 50 ? 'text-green-600' : 'text-red-500'}`}>
+                        {momentum >= 50 ? '▲' : '▼'} {momentum.toFixed(1)}
                       </span>
                     ) : '—'}
                   </td>
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2 justify-end">
-                      <div className="w-16 h-1.5 bg-stone-50 rounded-full overflow-hidden">
+                      <div className="w-16 h-1.5 bg-stone-100 rounded-full overflow-hidden">
                         <div className="h-full bg-stone-900 rounded-full" style={{ width: `${score}%` }} />
                       </div>
                       <span className="text-xs text-stone-500 w-6 text-right">{score}</span>
@@ -136,10 +165,10 @@ function InstrumentTable({ portfolio }: { portfolio: Portfolio }) {
                   </td>
                   <td className="py-3 pl-2">
                     <button
-                      onClick={() => navigate(`/assets/${inst.ticker}`)}
-                      className="text-xs text-amber-700 hover:text-amber-700-light transition-colors px-2 py-1 border border-fw-gold/30 rounded-lg hover:bg-stone-900/10"
+                      onClick={() => handleDetail(inst.ticker)}
+                      className="text-xs text-amber-700 hover:underline transition-colors px-2 py-1 border border-amber-200 rounded-lg hover:bg-amber-50"
                     >
-                      Detay
+                      Detail
                     </button>
                   </td>
                 </tr>
@@ -164,7 +193,7 @@ function FactorScoreChart({ portfolio }: { portfolio: Portfolio }) {
   return (
     <div className="card">
       <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest mb-4">
-        Faktör Skoru Karşılaştırması (İlk 5)
+        Factor Score Comparison (Top 5)
       </h3>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart data={instruments} barSize={28}>
@@ -173,7 +202,7 @@ function FactorScoreChart({ portfolio }: { portfolio: Portfolio }) {
           <YAxis domain={[0, 100]} tick={{ fill: '#78716c', fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
             contentStyle={{ background: '#ffffff', border: '1px solid #e7e5e4', borderRadius: 8 }}
-            formatter={(v: number) => [v, 'Kompozit Skor']}
+            formatter={(v: number) => [v, 'Composite Score']}
           />
           <Bar dataKey="score" fill="#1c1917" radius={[4, 4, 0, 0]} />
         </BarChart>
@@ -196,7 +225,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-center py-24">
           <div className="flex flex-col items-center gap-3">
             <Spinner size="lg" />
-            <p className="text-stone-500 text-sm">Dashboard yükleniyor…</p>
+            <p className="text-stone-500 text-sm">Loading dashboard…</p>
           </div>
         </div>
       </AppLayout>
@@ -207,11 +236,11 @@ export default function DashboardPage() {
     return (
       <AppLayout>
         <EmptyState
-          title="Portföy bulunamadı"
-          description="Henüz bir portföy öneriniz yok. Risk anketini tamamlayarak başlayın."
+          title="No portfolio found"
+          description="You have no portfolio yet. Complete the risk questionnaire to get started."
           action={
             <Button onClick={() => navigate('/questionnaire')}>
-              Risk Anketini Başlat →
+              Start Risk Questionnaire →
             </Button>
           }
         />
@@ -219,10 +248,11 @@ export default function DashboardPage() {
     )
   }
 
+  const totalInstruments = portfolio.allocations.reduce((s, a) => s + (a.instruments?.length ?? 0), 0)
+
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
-        {/* Staleness warning — SDD requirement */}
         {isStale && <StalenessWarning />}
 
         {/* Header row */}
@@ -232,20 +262,32 @@ export default function DashboardPage() {
             <HorizonBadge horizon={portfolio.horizonType} />
           </div>
           <Button variant="secondary" size="sm" onClick={() => navigate('/compare')}>
-            Senaryo Karşılaştır
+            Compare Scenarios
           </Button>
         </div>
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Risk Profili" value={
-            { conservative: 'Muhafazakâr', balanced: 'Dengeli', aggressive: 'Agresif' }[portfolio.profileType]
-          } sub={`${portfolio.profileType}`} />
-          <StatCard label="Portföy Skoru" value={portfolio.portfolioScore?.toFixed(1) ?? '—'} sub="Çeşitlendirme endeksi" />
-          <StatCard label="Beklenen Volatilite" value={`%${portfolio.expectedVolatility?.toFixed(1) ?? '—'}`} sub="Yıllık std. sapma" />
-          <StatCard label="Seçilen Varlık" value={
-            String(portfolio.allocations.reduce((s, a) => s + (a.instruments?.length ?? 0), 0))
-          } sub={`${portfolio.allocations.length} varlık sınıfı`} />
+          <StatCard
+            label="Risk Profile"
+            value={{ conservative: 'Conservative', balanced: 'Balanced', aggressive: 'Aggressive' }[portfolio.profileType]}
+            sub={portfolio.profileType}
+          />
+          <StatCard
+            label="Portfolio Score"
+            value={portfolio.portfolioScore?.toFixed(1) ?? '—'}
+            sub="Diversification index"
+          />
+          <StatCard
+            label="Expected Volatility"
+            value={`${portfolio.expectedVolatility?.toFixed(1) ?? '—'}%`}
+            sub="Annualised std. dev."
+          />
+          <StatCard
+            label="Selected Assets"
+            value={String(totalInstruments)}
+            sub={`${portfolio.allocations.length} asset classes`}
+          />
         </div>
 
         {/* Charts row */}
@@ -257,12 +299,10 @@ export default function DashboardPage() {
         {/* Instrument table */}
         <InstrumentTable portfolio={portfolio} />
 
-        {/* Disclaimer — RAD legal requirement: visible on every portfolio page */}
         <Disclaimer />
 
-        {/* Generation info */}
         <p className="text-xs text-stone-300 text-center">
-          Oluşturulma: {new Date(portfolio.generatedAt).toLocaleString('tr-TR')} · yfinance verisi (15 dk önbellek)
+          Generated: {new Date(portfolio.generatedAt).toLocaleString('en-US')} · yfinance data (15 min cache)
         </p>
       </div>
     </AppLayout>

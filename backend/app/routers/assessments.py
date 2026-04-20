@@ -3,6 +3,10 @@ Assessments router — RAD UC-03 (Complete Risk Assessment) and UC-08 (Update Ri
 
 POST /assessments          → submit answers, classify profile, trigger portfolio generation
 GET  /assessments/latest   → fetch most recent assessment result
+
+Changes:
+- expected_return wired through from engine
+- All error messages in English
 """
 import logging
 
@@ -26,8 +30,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/assessments", tags=["assessments"])
 
 
-# ── UC-03 / UC-08: Submit questionnaire ──────────────────────────────────────
-
 @router.post("", response_model=AssessmentResult, status_code=status.HTTP_201_CREATED)
 def submit_assessment(
     body: AssessmentSubmitRequest,
@@ -41,7 +43,6 @@ def submit_assessment(
     RAD UC-03 main flow steps 3-6.
     RAD UC-08: re-submission archives old profile and generates new portfolio.
     """
-    # Step 3: compute composite score and classify
     composite_score = compute_composite_score(body.answers)
     profile_type = classify_profile(composite_score)
     horizon_type = classify_horizon(body.answers)
@@ -51,7 +52,6 @@ def submit_assessment(
         current_user.id, composite_score, profile_type, horizon_type,
     )
 
-    # Step 4: persist assessment
     assessment = RiskAssessment(
         user_id=current_user.id,
         answers=[a.model_dump() for a in body.answers],
@@ -60,7 +60,7 @@ def submit_assessment(
         horizon_type=horizon_type,
     )
     db.add(assessment)
-    db.flush()  # get assessment.id before portfolio FK
+    db.flush()
 
     # UC-08: mark all previous portfolios as not current
     db.query(Portfolio).filter(
@@ -68,7 +68,6 @@ def submit_assessment(
         Portfolio.is_current == True,
     ).update({"is_current": False})
 
-    # Trigger portfolio generation (Layer 1 + Layer 2)
     try:
         engine_result = build_portfolio(profile_type, horizon_type)
     except Exception as exc:
@@ -79,10 +78,8 @@ def submit_assessment(
             detail="Portfolio generation failed. Please try again.",
         )
 
-    # Update assessment explanation from engine
     assessment.explanation = engine_result["explanation"]
 
-    # Persist portfolio
     portfolio = Portfolio(
         user_id=current_user.id,
         assessment_id=assessment.id,
@@ -91,12 +88,12 @@ def submit_assessment(
         is_current=True,
         portfolio_score=engine_result["portfolio_score"],
         expected_volatility=engine_result["expected_volatility"],
+        expected_return=engine_result.get("expected_return", 0.0),
         explanation=engine_result["explanation"],
     )
     db.add(portfolio)
     db.flush()
 
-    # Persist asset allocations (Layer 1 + 2 results)
     for alloc_data in engine_result["allocations"]:
         if alloc_data["target_weight"] > 0:
             alloc = AssetAllocation(
@@ -119,8 +116,6 @@ def submit_assessment(
         portfolioId=str(portfolio.id),
     )
 
-
-# ── GET /assessments/latest ───────────────────────────────────────────────────
 
 @router.get("/latest", response_model=AssessmentResult | None)
 def get_latest_assessment(

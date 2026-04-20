@@ -7,10 +7,10 @@ import { Input, FormField } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/index'
 
 const STEPS = [
-  'Hesabınızı oluşturun',
-  'E-postanızı doğrulayın',
-  'Risk anketini doldurun (15 soru)',
-  'Portföy önerinizi görüntüleyin',
+  'Create your account',
+  'Verify your email address',
+  'Complete the risk questionnaire (15 questions)',
+  'View your personalised portfolio recommendation',
 ]
 
 export default function RegisterPage() {
@@ -22,11 +22,11 @@ export default function RegisterPage() {
 
   const validate = () => {
     const e: Record<string, string> = {}
-    if (!form.fullName.trim()) e.fullName = 'Ad soyad gerekli.'
-    if (!form.email) e.email = 'E-posta gerekli.'
-    if (!form.password || form.password.length < 8) e.password = 'Şifre en az 8 karakter olmalı.'
-    if (form.password !== form.confirmPassword) e.confirmPassword = 'Şifreler eşleşmiyor.'
-    if (!form.acceptTerms) e.acceptTerms = 'Devam etmek için şartları kabul edin.'
+    if (!form.fullName.trim()) e.fullName = 'Full name is required.'
+    if (!form.email) e.email = 'Email address is required.'
+    if (!form.password || form.password.length < 8) e.password = 'Password must be at least 8 characters.'
+    if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match.'
+    if (!form.acceptTerms) e.acceptTerms = 'You must accept the terms to continue.'
     return e
   }
 
@@ -38,7 +38,7 @@ export default function RegisterPage() {
     setFieldErrors({})
     try {
       await register({ fullName: form.fullName, email: form.email, password: form.password })
-    } catch { /* hata AuthContext'te yönetiliyor */ }
+    } catch { /* error managed by AuthContext */ }
   }
 
   const handleResend = async () => {
@@ -48,7 +48,7 @@ export default function RegisterPage() {
     setTimeout(() => setResent(false), 5000)
   }
 
-  // ── Mail Doğrulama Bekleniyor Ekranı ─────────────────────────────────────
+  // ── Email Verification Pending Screen ────────────────────────────────────
   if (emailConfirmationPending) {
     return (
       <AuthLayout>
@@ -59,21 +59,21 @@ export default function RegisterPage() {
             </div>
             <div>
               <h2 className="font-display text-2xl font-bold text-stone-900 mb-2">
-                E-postanızı Doğrulayın
+                Verify Your Email
               </h2>
               <p className="text-stone-500 text-sm leading-relaxed">
-                <strong className="text-stone-700">{pendingEmail}</strong> adresine
-                bir doğrulama bağlantısı gönderdik.
+                We sent a verification link to{' '}
+                <strong className="text-stone-700">{pendingEmail}</strong>.
               </p>
             </div>
 
             <div className="bg-stone-50 rounded-xl p-4 text-left space-y-2">
-              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest">Sonraki adımlar</p>
+              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest">Next steps</p>
               <ol className="space-y-2">
                 {[
-                  'Gelen kutunuzu kontrol edin (spam klasörünü de deneyin)',
-                  'E-postadaki "E-postamı Doğrula" butonuna tıklayın',
-                  'Otomatik olarak giriş yapılacaksınız',
+                  'Check your inbox (also try your spam folder)',
+                  'Click the "Verify My Email" button in the email',
+                  'You will be logged in automatically',
                 ].map((step, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-stone-600">
                     <span className="w-5 h-5 rounded-full bg-stone-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-stone-500 mt-0.5">
@@ -86,21 +86,21 @@ export default function RegisterPage() {
             </div>
 
             {resent && (
-              <Alert variant="success">Doğrulama maili tekrar gönderildi!</Alert>
+              <Alert variant="success">Verification email resent!</Alert>
             )}
 
             <p className="text-xs text-stone-400">
-              Mail gelmediyse?{' '}
+              Didn't receive it?{' '}
               <button
                 onClick={handleResend}
                 className="text-stone-600 underline hover:text-stone-900 font-medium"
               >
-                Tekrar gönder
+                Resend
               </button>
             </p>
 
             <Button variant="secondary" className="w-full" onClick={() => navigate('/login')}>
-              Giriş Sayfasına Dön
+              Back to Login
             </Button>
           </div>
         </div>
@@ -108,13 +108,13 @@ export default function RegisterPage() {
     )
   }
 
-  // ── Kayıt Formu ───────────────────────────────────────────────────────────
+  // ── Registration Form ─────────────────────────────────────────────────────
   return (
     <AuthLayout>
       <div className="w-full max-w-4xl animate-slide-up">
         <div className="mb-6">
-          <h1 className="font-display text-3xl font-bold text-stone-900 mb-1">Hesap Oluştur</h1>
-          <p className="text-stone-500 text-sm">Kişiselleştirilmiş portföyünüzü oluşturmaya başlayın</p>
+          <h1 className="font-display text-3xl font-bold text-stone-900 mb-1">Create Account</h1>
+          <p className="text-stone-500 text-sm">Start building your personalised portfolio</p>
         </div>
 
         <div className="grid md:grid-cols-5 gap-6 items-start">
@@ -122,23 +122,23 @@ export default function RegisterPage() {
             <div className="card space-y-4">
               {error && <Alert variant="error">{error}</Alert>}
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
-                <FormField label="Ad Soyad" htmlFor="fullName" required>
-                  <Input id="fullName" placeholder="Adınız Soyadınız" autoComplete="name"
+                <FormField label="Full Name" htmlFor="fullName" required>
+                  <Input id="fullName" placeholder="Your full name" autoComplete="name"
                     value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                     error={fieldErrors.fullName} />
                 </FormField>
-                <FormField label="E-posta Adresi" htmlFor="email" required>
-                  <Input id="email" type="email" placeholder="siz@ornek.com" autoComplete="email"
+                <FormField label="Email Address" htmlFor="email" required>
+                  <Input id="email" type="email" placeholder="you@example.com" autoComplete="email"
                     value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
                     error={fieldErrors.email} />
                 </FormField>
-                <FormField label="Şifre" htmlFor="password" required>
-                  <Input id="password" type="password" placeholder="En az 8 karakter" autoComplete="new-password"
+                <FormField label="Password" htmlFor="password" required>
+                  <Input id="password" type="password" placeholder="At least 8 characters" autoComplete="new-password"
                     value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
                     error={fieldErrors.password} />
                 </FormField>
-                <FormField label="Şifre Tekrar" htmlFor="confirmPassword" required>
-                  <Input id="confirmPassword" type="password" placeholder="Şifreyi tekrar girin" autoComplete="new-password"
+                <FormField label="Confirm Password" htmlFor="confirmPassword" required>
+                  <Input id="confirmPassword" type="password" placeholder="Re-enter your password" autoComplete="new-password"
                     value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                     error={fieldErrors.confirmPassword} />
                 </FormField>
@@ -146,20 +146,20 @@ export default function RegisterPage() {
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" className="mt-0.5 w-4 h-4 accent-stone-900 cursor-pointer"
                       checked={form.acceptTerms} onChange={(e) => setForm({ ...form, acceptTerms: e.target.checked })} />
-                    <span className="text-sm text-stone-600">Kullanım Koşulları ve Gizlilik Politikasını kabul ediyorum</span>
+                    <span className="text-sm text-stone-600">I accept the Terms of Service and Privacy Policy</span>
                   </label>
                   {fieldErrors.acceptTerms && (
                     <p className="mt-1 text-xs text-red-600 ml-7">{fieldErrors.acceptTerms}</p>
                   )}
                 </div>
                 <Button type="submit" className="w-full" isLoading={isLoading}>
-                  Hesap Oluştur →
+                  Create Account →
                 </Button>
               </form>
               <p className="text-center text-sm text-stone-500">
-                Zaten hesabınız var mı?{' '}
+                Already have an account?{' '}
                 <button onClick={() => navigate('/login')} className="text-stone-900 font-medium hover:underline">
-                  Giriş yapın
+                  Log in
                 </button>
               </p>
             </div>
@@ -167,7 +167,7 @@ export default function RegisterPage() {
 
           <div className="md:col-span-2 space-y-4">
             <div className="card">
-              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-4">SONRAKI ADIMLAR</p>
+              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-4">HOW IT WORKS</p>
               <ol className="space-y-3">
                 {STEPS.map((step, i) => (
                   <li key={i} className="flex items-start gap-3">
@@ -184,8 +184,8 @@ export default function RegisterPage() {
             <div className="disclaimer">
               <span className="flex-shrink-0 mt-0.5">⚠</span>
               <span>
-                <strong>Sorumluluk Reddi</strong><br />
-                Öneriler yalnızca eğitim amaçlıdır. Bu, lisanslı finansal tavsiye değildir.
+                <strong>Disclaimer</strong><br />
+                Recommendations are for educational purposes only. This is not licensed financial advice.
               </span>
             </div>
           </div>

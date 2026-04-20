@@ -1,13 +1,13 @@
 """
 Auth router — RAD UC-01 (Register) and UC-02 (Login / Logout)
 
-POST /auth/register          → hesap oluştur, doğrulama maili gönder
-POST /auth/login             → giriş yap, JWT ver (mail doğrulanmışsa)
-GET  /auth/verify-email      → token ile mail doğrula, JWT ver
-POST /auth/resend-verification → doğrulama mailini tekrar gönder
-POST /auth/refresh           → refresh token ile yeni access token al
-POST /auth/logout            → refresh token'ı iptal et
-GET  /auth/me                → mevcut kullanıcı bilgisi
+POST /auth/register          → create account, send verification email
+POST /auth/login             → login, issue JWT (if email verified)
+GET  /auth/verify-email      → verify email with token, issue JWT
+POST /auth/resend-verification → resend verification email
+POST /auth/refresh           → exchange refresh token for new access token
+POST /auth/logout            → revoke refresh token
+GET  /auth/me                → current user info
 """
 import logging
 import secrets
@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 _BLACKLIST_PREFIX = "blacklist:refresh:"
-_BLACKLIST_TTL = 60 * 60 * 24 * 7  # 7 gün
+_BLACKLIST_TTL = 60 * 60 * 24 * 7  # 7 days
 
 
 # ── UC-01: Register ───────────────────────────────────────────────────────────
@@ -51,17 +51,16 @@ _BLACKLIST_TTL = 60 * 60 * 24 * 7  # 7 gün
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
     """
-    Hesap oluşturur ve doğrulama maili gönderir.
-    Kullanıcı mail doğrulayana kadar login yapamaz.
+    Creates an account and sends a verification email.
+    User cannot log in until email is verified.
     """
     existing = db.query(User).filter(User.email == body.email).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Bu e-posta adresi zaten kayıtlı.",
+            detail="This email address is already registered.",
         )
 
-    # Güvenli rastgele token üret
     verify_token = secrets.token_urlsafe(32)
 
     user = User(
@@ -76,67 +75,63 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    logger.info("Yeni kullanıcı kaydedildi: %s (id=%s)", user.email, user.id)
+    logger.info("New user registered: %s (id=%s)", user.email, user.id)
 
-    # Doğrulama maili gönder
     try:
         send_verification_email(user.email, user.full_name, verify_token)
     except Exception as exc:
-        logger.error("Mail gönderilemedi: %s", exc)
-        # Mail gönderilemese bile kayıt geçerli — kullanıcı tekrar istek atabilir
+        logger.error("Failed to send verification email: %s", exc)
+        # Registration is still valid — user can request resend
 
     return RegisterResponse(
-        message="Hesabınız oluşturuldu. Lütfen e-posta adresinizi doğrulayın.",
+        message="Account created. Please verify your email address.",
         email=user.email,
     )
 
 
-# ── Email doğrulama ───────────────────────────────────────────────────────────
+# ── Email verification ────────────────────────────────────────────────────────
 
 @router.get("/verify-email", response_model=TokenResponse)
 def verify_email(token: str = Query(...), db: Session = Depends(get_db)):
     """
-    Frontend'den gelen doğrulama tokenini kontrol eder.
-    Başarılıysa kullanıcıyı doğrulanmış yapar ve JWT döner (direkt giriş).
+    Validates the verification token from the frontend link.
+    On success, marks the user as verified and returns a JWT for immediate login.
     """
     user = db.query(User).filter(User.email_verify_token == token).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Geçersiz veya süresi dolmuş doğrulama bağlantısı.",
+            detail="Invalid or expired verification link.",
         )
 
     if user.is_email_verified:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Bu e-posta adresi zaten doğrulanmış.",
+            detail="This email address has already been verified.",
         )
 
-    # Doğrulandı olarak işaretle, token'ı temizle
     user.is_email_verified = True
     user.email_verify_token = None
     db.commit()
-    logger.info("E-posta doğrulandı: %s", user.email)
+    logger.info("Email verified: %s", user.email)
 
-    # Direkt giriş yaptır — JWT ver
     return TokenResponse(
         accessToken=create_access_token(str(user.id)),
         refreshToken=create_refresh_token(str(user.id)),
     )
 
 
-# ── Doğrulama mailini tekrar gönder ──────────────────────────────────────────
+# ── Resend verification email ─────────────────────────────────────────────────
 
 @router.post("/resend-verification", status_code=status.HTTP_204_NO_CONTENT)
 def resend_verification(body: ResendVerificationRequest, db: Session = Depends(get_db)):
-    """Doğrulama mailini tekrar gönderir."""
+    """Resends the verification email."""
     user = db.query(User).filter(User.email == body.email).first()
 
-    # Kullanıcı bulunamasa bile 204 dön (email enumeration'ı engelle)
+    # Return 204 even if user not found (prevent email enumeration)
     if not user or user.is_email_verified:
         return
 
-    # Yeni token üret
     new_token = secrets.token_urlsafe(32)
     user.email_verify_token = new_token
     db.commit()
@@ -144,7 +139,7 @@ def resend_verification(body: ResendVerificationRequest, db: Session = Depends(g
     try:
         send_verification_email(user.email, user.full_name, new_token)
     except Exception as exc:
-        logger.error("Tekrar mail gönderilemedi: %s", exc)
+        logger.error("Failed to resend verification email: %s", exc)
 
 
 # ── UC-02: Login ──────────────────────────────────────────────────────────────
@@ -152,25 +147,24 @@ def resend_verification(body: ResendVerificationRequest, db: Session = Depends(g
 @router.post("/login", response_model=TokenResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     """
-    Kimlik doğrular ve JWT verir.
-    Mail doğrulanmamışsa 403 döner.
+    Authenticates user and issues JWT tokens.
+    Returns 403 if email is not yet verified.
     """
     user = db.query(User).filter(User.email == body.email, User.is_active == True).first()
 
     if user is None or not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="E-posta veya şifre hatalı.",
+            detail="Invalid email or password.",
         )
 
-    # Mail doğrulama kontrolü
     if not user.is_email_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="E-posta adresiniz henüz doğrulanmadı. Lütfen gelen kutunuzu kontrol edin.",
+            detail="Email address not yet verified. Please check your inbox.",
         )
 
-    logger.info("Giriş yapıldı: %s", user.email)
+    logger.info("User logged in: %s", user.email)
     return TokenResponse(
         accessToken=create_access_token(str(user.id)),
         refreshToken=create_refresh_token(str(user.id)),
@@ -184,16 +178,16 @@ def refresh_token(body: RefreshRequest, db: Session = Depends(get_db)):
     redis = get_redis()
 
     if redis.get(f"{_BLACKLIST_PREFIX}{body.refreshToken}"):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token iptal edilmiş.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked.")
 
     try:
         user_id = decode_token(body.refreshToken, expected_type="refresh")
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz refresh token.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token.")
 
     user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Kullanıcı bulunamadı.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
 
     redis.setex(f"{_BLACKLIST_PREFIX}{body.refreshToken}", _BLACKLIST_TTL, "1")
 
@@ -209,7 +203,7 @@ def refresh_token(body: RefreshRequest, db: Session = Depends(get_db)):
 def logout(body: RefreshRequest):
     redis = get_redis()
     redis.setex(f"{_BLACKLIST_PREFIX}{body.refreshToken}", _BLACKLIST_TTL, "1")
-    logger.info("Logout — refresh token iptal edildi.")
+    logger.info("Logout — refresh token revoked.")
 
 
 # ── GET /auth/me ──────────────────────────────────────────────────────────────

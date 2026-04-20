@@ -5,13 +5,13 @@ export function Spinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   return <span className={`${s} border-2 border-stone-900 border-t-transparent rounded-full animate-spin inline-block`} />
 }
 
-const profileLabels: Record<ProfileType, string> = { conservative: 'Muhafazakâr', balanced: 'Dengeli', aggressive: 'Agresif' }
+const profileLabels: Record<ProfileType, string> = { conservative: 'Conservative', balanced: 'Balanced', aggressive: 'Aggressive' }
 export function ProfileBadge({ profile }: { profile: ProfileType }) {
   return <span className={`badge-${profile}`}>{profileLabels[profile]}</span>
 }
 
 const horizonLabels: Record<HorizonType, string> = {
-  short: 'Kısa Vade (0–1 yıl)', medium: 'Orta Vade (1–5 yıl)', long: 'Uzun Vade (5+ yıl)',
+  short: 'Short-term (0–1 yr)', medium: 'Medium-term (1–5 yr)', long: 'Long-term (5+ yr)',
 }
 export function HorizonBadge({ horizon }: { horizon: HorizonType }) {
   return (
@@ -42,7 +42,7 @@ export function StalenessWarning() {
   return (
     <div className="stale-warning">
       <span>⚠</span>
-      <span>Piyasa verileri güncel olmayabilir. Sistem önbellekten yüklendi.</span>
+      <span>Market data may not be current. Loaded from cache.</span>
     </div>
   )
 }
@@ -51,7 +51,7 @@ export function Disclaimer() {
   return (
     <div className="disclaimer">
       <span className="flex-shrink-0 mt-0.5">⚠</span>
-      <span>Bu öneriler yalnızca eğitim amaçlıdır ve düzenlenmiş finansal tavsiye niteliği taşımaz.</span>
+      <span>These recommendations are for educational purposes only and do not constitute regulated financial advice.</span>
     </div>
   )
 }

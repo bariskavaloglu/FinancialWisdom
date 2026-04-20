@@ -82,9 +82,11 @@ export interface Instrument {
   name: string
   assetClass: AssetClass
   exchange: string
+  currency: string
   currentPrice: number
   isActive: boolean
   factorScore?: FactorScore
+  whySelected?: string[]
 }
 
 export interface AssetAllocation {
@@ -106,6 +108,7 @@ export interface Portfolio {
   allocations: AssetAllocation[]
   portfolioScore: number
   expectedVolatility: number
+  expectedReturn: number
   explanation?: string
 }
 
@@ -131,6 +134,7 @@ export interface InstrumentDetail extends Instrument {
     week52Low?: number
     momentum1M?: number
     volatility1Y?: number
+    beta?: number
   }
   whySelected: string[]
   isStale?: boolean

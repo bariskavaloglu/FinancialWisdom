@@ -61,7 +61,7 @@ export default function QuestionnairePage() {
       clearAnswers()
       navigate('/profile/result', { state: { result } })
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : 'Gönderim başarısız. Lütfen tekrar deneyin.')
+      setSubmitError(err instanceof Error ? err.message : 'Submission failed. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -109,7 +109,7 @@ export default function QuestionnairePage() {
             />
           </div>
           <p className="text-xs text-stone-400 mt-2 text-right">
-            Soru {currentQ + 1} / {QUESTIONS.length}
+            Question {currentQ + 1} of {QUESTIONS.length}
           </p>
         </div>
 
@@ -117,7 +117,7 @@ export default function QuestionnairePage() {
         <div className="card animate-slide-up" key={currentQ}>
           {/* Category label */}
           <p className="text-xs font-medium text-stone-400 uppercase tracking-widest mb-2">
-            {question.category} · Soru {questionInCategory} / {QUESTIONS_PER_CATEGORY}
+            {question.category} · Question {questionInCategory} of {QUESTIONS_PER_CATEGORY}
           </p>
 
           {/* Question text */}
@@ -148,7 +148,7 @@ export default function QuestionnairePage() {
                     <span className="text-sm leading-snug">{option}</span>
                     {isSelected && (
                       <span className="ml-auto text-xs font-medium text-stone-900 bg-stone-200 px-2 py-0.5 rounded-full">
-                        Seçildi
+                        Selected
                       </span>
                     )}
                   </div>
@@ -164,7 +164,7 @@ export default function QuestionnairePage() {
                 className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-900 transition-colors"
                 onClick={() => setShowHelp(!showHelp)}
               >
-                <span>💡</span> Bu soru neden soruluyor?
+                <span>💡</span> Why is this question asked?
               </button>
               {showHelp && (
                 <div className="mt-2 px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-500 leading-relaxed animate-fade-in">
@@ -181,11 +181,11 @@ export default function QuestionnairePage() {
               onClick={goPrev}
               disabled={currentQ === 0}
             >
-              ← Önceki
+              ← Previous
             </Button>
 
             <span className="text-xs text-stone-300 font-mono">
-              {answers.length}/{QUESTIONS.length} cevaplandı
+              {answers.length} of {QUESTIONS.length} answered
             </span>
 
             {isLastQuestion ? (
@@ -194,14 +194,14 @@ export default function QuestionnairePage() {
                 disabled={!allAnswered || isSubmitting}
                 isLoading={isSubmitting}
               >
-                Profili Hesapla →
+                Calculate Profile →
               </Button>
             ) : (
               <Button
                 onClick={goNext}
                 disabled={!hasAnsweredCurrent}
               >
-                Sonraki →
+                Next →
               </Button>
             )}
           </div>
@@ -220,7 +220,7 @@ export default function QuestionnairePage() {
               <Spinner size="lg" />
               <div>
                 <p className="text-stone-900 font-medium">Profiliniz hesaplanıyor</p>
-                <p className="text-stone-500 text-sm mt-1">Portföy oluşturuluyor…</p>
+                <p className="text-stone-500 text-sm mt-1">Building your portfolio…</p>
               </div>
             </div>
           </div>

@@ -1,13 +1,13 @@
 /**
- * AuthContext — FastAPI backend ile çalışır.
+ * AuthContext — works with FastAPI backend.
  *
- * Kayıt akışı:
- *   register() → POST /auth/register → "mail doğrulama bekleniyor" mesajı
- *   Kullanıcı maildeki linke tıklar → /verify-email?token=xxx
- *   VerifyEmailPage → GET /auth/verify-email?token=xxx → JWT alır → giriş yapılır
+ * Registration flow:
+ *   register() → POST /auth/register → "email verification pending" message
+ *   User clicks the link in email → /verify-email?token=xxx
+ *   VerifyEmailPage → GET /auth/verify-email?token=xxx → gets JWT → logged in
  *
- * Giriş akışı:
- *   login() → POST /auth/login → JWT alır (sadece doğrulanmış hesaplar)
+ * Login flow:
+ *   login() → POST /auth/login → gets JWT (verified accounts only)
  */
 import React, { createContext, useContext, useEffect, useReducer, useCallback } from 'react'
 import { api } from '@/services/api'
@@ -21,7 +21,7 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   emailConfirmationPending: boolean
-  pendingEmail: string | null  // doğrulama beklenen mail adresi
+  pendingEmail: string | null  // email address pending verification
 }
 
 type AuthAction =
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: me.role, createdAt: me.createdAt,
       }})
     } catch (err: unknown) {
-      const msg = _extractError(err, 'Giriş başarısız.')
+      const msg = _extractError(err, 'Login failed.')
       dispatch({ type: 'AUTH_ERROR', payload: msg })
       throw new Error(msg)
     }
@@ -144,16 +144,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: data.email,
         password: data.password,
       })
-      // Kayıt başarılı → mail doğrulama bekleniyor
+      // Registration successful → email verification pending
       dispatch({ type: 'EMAIL_CONFIRMATION_PENDING', payload: data.email })
     } catch (err: unknown) {
-      const msg = _extractError(err, 'Kayıt başarısız.')
+      const msg = _extractError(err, 'Registration failed.')
       dispatch({ type: 'AUTH_ERROR', payload: msg })
       throw new Error(msg)
     }
   }, [])
 
-  // Mail doğrulama sonrası (VerifyEmailPage'den çağrılır)
+  // Called after email verification (from VerifyEmailPage)
   const loginWithTokens = useCallback(async (accessToken: string, refreshToken: string) => {
     saveTokens(accessToken, refreshToken)
     const { data: me } = await api.get('/auth/me')
@@ -202,10 +202,10 @@ function _extractError(err: unknown, fallback: string): string {
   if (err && typeof err === 'object' && 'response' in err) {
     const e = err as { response?: { data?: { detail?: string }; status?: number } }
     if (e.response?.data?.detail) return e.response.data.detail
-    if (e.response?.status === 409) return 'Bu e-posta adresi zaten kayıtlı.'
-    if (e.response?.status === 401) return 'E-posta veya şifre hatalı.'
-    if (e.response?.status === 403) return 'E-posta adresiniz henüz doğrulanmadı. Lütfen gelen kutunuzu kontrol edin.'
-    if (e.response?.status === 422) return 'Lütfen tüm alanları doğru doldurun.'
+    if (e.response?.status === 409) return 'This email address is already registered.'
+    if (e.response?.status === 401) return 'Invalid email or password.'
+    if (e.response?.status === 403) return 'Email address not yet verified. Please check your inbox.'
+    if (e.response?.status === 422) return 'Please fill in all fields correctly.'
   }
   if (err instanceof Error) return err.message
   return fallback

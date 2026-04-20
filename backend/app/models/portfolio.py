@@ -40,6 +40,7 @@ class Portfolio(Base):
 
     portfolio_score: Mapped[int] = mapped_column(Integer, nullable=False)
     expected_volatility: Mapped[float] = mapped_column(Float, nullable=False)
+    expected_return: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
     explanation: Mapped[str | None] = mapped_column(Text)
 

@@ -48,7 +48,7 @@ function PageLoader() {
     <div className="min-h-screen flex items-center justify-center bg-fw-900">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-fw-gold border-t-transparent rounded-full animate-spin" />
-        <p className="text-fw-600 text-sm font-sans">Yükleniyor...</p>
+        <p className="text-fw-600 text-sm font-sans">Loading...</p>
       </div>
     </div>
   )
@@ -77,7 +77,7 @@ export default function App() {
               <Route path="/questionnaire"   element={<QuestionnairePage />} />
               <Route path="/profile/result"  element={<ProfileResultPage />} />
               <Route path="/dashboard"       element={<DashboardPage />} />
-              <Route path="/assets/:ticker"  element={<AssetDetailPage />} />
+              <Route path="/instrument/:ticker"  element={<AssetDetailPage />} />
               <Route path="/compare"         element={<ComparePage />} />
             </Route>
 

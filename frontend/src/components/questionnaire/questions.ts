@@ -8,175 +8,175 @@ export interface Question {
 }
 
 export const CATEGORIES = [
-  'Finansal Hedefler',
-  'Risk Toleransı',
-  'Kayıp Toleransı',
-  'Yatırım Ufku',
-  'Likidite',
+  'Financial Goals',
+  'Risk Tolerance',
+  'Loss Tolerance',
+  'Investment Horizon',
+  'Liquidity',
 ]
 
 export const QUESTIONS: Question[] = [
-  // ── Finansal Hedefler (Cat 0) ─────────────────────────────────
+  // ── Financial Goals (Cat 0) ───────────────────────────────────
   {
-    id: 1, category: 'Finansal Hedefler', categoryIndex: 0,
-    text: 'Yatırım yapmanın birincil amacınız nedir?',
+    id: 1, category: 'Financial Goals', categoryIndex: 0,
+    text: 'What is your primary objective for investing?',
+    helpText: 'Your goal shapes the entire portfolio strategy.',
     options: [
-      'Birikimlerimi enflasyondan korumak',
-      'İstikrarlı bir gelir elde etmek',
-      'Uzun vadeli servet oluşturmak',
-      'Agresif büyüme ve yüksek getiri',
+      'Protect my savings from inflation',
+      'Generate stable, regular income',
+      'Build long-term wealth',
+      'Aggressive growth and maximum returns',
     ],
   },
   {
-    id: 2, category: 'Finansal Hedefler', categoryIndex: 0,
-    text: 'Yatırımlarınızdan beklediğiniz yıllık getiri hedefi nedir?',
+    id: 2, category: 'Financial Goals', categoryIndex: 0,
+    text: 'What annual return do you realistically expect from your investments?',
     options: [
-      '%0–5 (Düşük risk, düşük getiri)',
-      '%5–10 (Orta risk, orta getiri)',
-      '%10–20 (Yüksek risk, yüksek getiri)',
-      '%20+ (Çok yüksek risk, maksimum getiri)',
+      '0–5% (low risk, low return)',
+      '5–10% (moderate risk, moderate return)',
+      '10–20% (higher risk, higher return)',
+      '20%+ (very high risk, maximum return)',
     ],
   },
   {
-    id: 3, category: 'Finansal Hedefler', categoryIndex: 0,
-    text: 'Toplam tasarruflarınızın ne kadarını bu platforma yatırmayı planlıyorsunuz?',
+    id: 3, category: 'Financial Goals', categoryIndex: 0,
+    text: 'What percentage of your total savings do you plan to invest through this platform?',
     options: [
-      '%10\'dan az',
-      '%10–25',
-      '%25–50',
-      '%50\'den fazla',
+      'Less than 10%',
+      '10–25%',
+      '25–50%',
+      'More than 50%',
     ],
   },
-  // ── Risk Toleransı (Cat 1) ────────────────────────────────────
+  // ── Risk Tolerance (Cat 1) ────────────────────────────────────
   {
-    id: 4, category: 'Risk Toleransı', categoryIndex: 1,
-    text: 'Yatırım konusundaki genel tutumunuzu nasıl tanımlarsınız?',
+    id: 4, category: 'Risk Tolerance', categoryIndex: 1,
+    text: 'How would you describe your overall attitude toward investing?',
     options: [
-      'Çok temkinliyim, anaparamı kaybetmek istemem',
-      'Biraz risk alabilirim ama kayıpları minimumda tutmak isterim',
-      'Daha yüksek getiri için orta düzey riski kabul ederim',
-      'Maksimum getiri için yüksek risk almaya hazırım',
-    ],
-  },
-  {
-    id: 5, category: 'Risk Toleransı', categoryIndex: 1,
-    text: 'Kripto para gibi yüksek volatiliteli varlıklara bakış açınız nedir?',
-    options: [
-      'Hiç almam, çok riskli',
-      'Küçük bir pozisyon alabilirim (%5\'e kadar)',
-      'Portföyümün önemli bir kısmını oluşturabilir (%10–20)',
-      'Agresif şekilde yatırım yaparım (%20+)',
+      'Very cautious — I cannot afford to lose any principal',
+      'Somewhat cautious — I can take some risk but want to minimise losses',
+      'Moderate — I accept mid-level risk for better returns',
+      'Aggressive — I am comfortable with high risk for maximum gains',
     ],
   },
   {
-    id: 6, category: 'Risk Toleransı', categoryIndex: 1,
-    text: 'Finansal piyasalar hakkındaki deneyim seviyeniz nedir?',
+    id: 5, category: 'Risk Tolerance', categoryIndex: 1,
+    text: 'What is your view on highly volatile assets such as cryptocurrency?',
     options: [
-      'Acemi — piyasaları takip etmiyorum',
-      'Başlangıç — temel kavramları biliyorum',
-      'Orta — hisse senedi ve fonları anlıyorum',
-      'İleri — teknik analiz ve türevlere hakimim',
-    ],
-  },
-  // ── Kayıp Toleransı (Cat 2) ───────────────────────────────────
-  {
-    id: 7, category: 'Kayıp Toleransı', categoryIndex: 2,
-    text: 'Portföyünüz bir ayda %20 düşerse ne yaparsınız?',
-    helpText: 'Kayıp toleransı, risk profilinizin belirleyici bir boyutudur.',
-    options: [
-      'Her şeyi hemen satarım, daha fazla kayıp istemem',
-      'Bekler ve gözlemlerim, piyasalar genellikle toparlanır',
-      'Düşük fiyattan alım yaparım, fırsat olarak görürüm',
-      'Fark etmez, kaybetmeyi göze alabileceğim parayla yatırım yapıyorum',
+      'I would never invest — far too risky',
+      'A small position is fine (up to 5%)',
+      'It can form a meaningful part of my portfolio (10–20%)',
+      'I would invest aggressively (20%+)',
     ],
   },
   {
-    id: 8, category: 'Kayıp Toleransı', categoryIndex: 2,
-    text: 'En fazla hangi oranda kayba katlanabilirsiniz?',
+    id: 6, category: 'Risk Tolerance', categoryIndex: 1,
+    text: 'What is your level of experience with financial markets?',
     options: [
-      '%5\'e kadar kayıp kabul edilebilir',
-      '%5–15 arası kayıp katlanılabilir',
-      '%15–30 arası kayıp kısa vadede tolere edilebilir',
-      '%30+ kayıp dahi uzun vadede telafi edilebilir',
+      'Beginner — I do not follow markets',
+      'Basic — I understand fundamental concepts',
+      'Intermediate — I understand stocks and funds',
+      'Advanced — I am familiar with technical analysis and derivatives',
+    ],
+  },
+  // ── Loss Tolerance (Cat 2) ────────────────────────────────────
+  {
+    id: 7, category: 'Loss Tolerance', categoryIndex: 2,
+    text: 'If your portfolio dropped 20% in a single month, what would you do?',
+    helpText: 'Loss tolerance is a key dimension of your risk profile.',
+    options: [
+      'Sell everything immediately — I cannot bear further losses',
+      'Wait and observe — markets usually recover',
+      'Buy more at the lower price — I see it as an opportunity',
+      'Not concerned — I only invest money I can afford to lose',
     ],
   },
   {
-    id: 9, category: 'Kayıp Toleransı', categoryIndex: 2,
-    text: 'Geçmişte yatırımlarınızda önemli bir kayıp yaşadınız mı?',
+    id: 8, category: 'Loss Tolerance', categoryIndex: 2,
+    text: 'What is the maximum loss you could tolerate in your portfolio?',
     options: [
-      'Hayır ve böyle bir durum ciddi şekilde endişelendirir',
-      'Hayır ama kontrol altında tutabileceğimi düşünüyorum',
-      'Evet, toparlanmak zaman aldı ama üstesinden geldim',
-      'Evet, bunun piyasaların doğasında olduğunu kabul ediyorum',
-    ],
-  },
-  // ── Yatırım Ufku (Cat 3) ─────────────────────────────────────
-  {
-    id: 10, category: 'Yatırım Ufku', categoryIndex: 3,
-    text: 'Bu portföydeki yatırımlarınızı ne kadar süre tutmayı planlıyorsunuz?',
-    options: [
-      '1 yıldan kısa (kısa vade)',
-      '1–5 yıl (orta vade)',
-      '5–10 yıl (uzun vade)',
-      '10 yıldan fazla (çok uzun vade)',
+      'Up to 5%',
+      '5–15%',
+      '15–30%',
+      '30%+ is acceptable over the long term',
     ],
   },
   {
-    id: 11, category: 'Yatırım Ufku', categoryIndex: 3,
-    text: 'Bu parayı yakın gelecekte (1–2 yıl) kullanma ihtimaliniz ne kadar?',
+    id: 9, category: 'Loss Tolerance', categoryIndex: 2,
+    text: 'Have you experienced a significant investment loss in the past?',
     options: [
-      'Çok yüksek — yakında ihtiyacım olabilir',
-      'Orta — belki ihtiyacım olabilir',
-      'Düşük — planlamıyorum',
-      'Yok — kesinlikle kullanmayacağım',
+      'No — and it would seriously concern me',
+      'No — but I believe I could handle it',
+      'Yes — recovery took time but I got through it',
+      'Yes — I accept losses as part of how markets work',
+    ],
+  },
+  // ── Investment Horizon (Cat 3) ────────────────────────────────
+  {
+    id: 10, category: 'Investment Horizon', categoryIndex: 3,
+    text: 'How long do you plan to hold the investments in this portfolio?',
+    options: [
+      'Less than 1 year (short term)',
+      '1–5 years (medium term)',
+      '5–10 years (long term)',
+      'More than 10 years (very long term)',
     ],
   },
   {
-    id: 12, category: 'Yatırım Ufku', categoryIndex: 3,
-    text: 'Hangi yaşam döneminde olduğunuzu düşünüyorsunuz?',
+    id: 11, category: 'Investment Horizon', categoryIndex: 3,
+    text: 'How likely are you to need this money within the next 1–2 years?',
     options: [
-      'Emekliliğe yakın, sermayeyi koruma önceliğim',
-      'Orta yaş, hem büyüme hem koruma istiyorum',
-      'Kariyer başlangıcı, büyüme odaklıyım',
-      'Genç yatırımcı, uzun vadeli agresif büyüme hedefliyorum',
-    ],
-  },
-  // ── Likidite (Cat 4) ──────────────────────────────────────────
-  {
-    id: 13, category: 'Likidite', categoryIndex: 4,
-    text: 'Acil durum fonunuz (3–6 aylık gider) var mı?',
-    options: [
-      'Hayır, acil fon yok',
-      'Kısmi — 1–2 aylık giderim var',
-      'Evet — 3–6 aylık acil fonuma sahibim',
-      'Evet ve bu yatırım dışında tutulacak',
+      'Very likely — I may need it soon',
+      'Possible — maybe',
+      'Unlikely — I have no plans to withdraw',
+      'Not at all — this money is fully committed',
     ],
   },
   {
-    id: 14, category: 'Likidite', categoryIndex: 4,
-    text: 'Portföyünüzden anlık olarak para çekme ihtiyacınız olabilir mi?',
+    id: 12, category: 'Investment Horizon', categoryIndex: 3,
+    text: 'Which life stage best describes you?',
     options: [
-      'Evet, her zaman likidite ihtiyacım olabilir',
-      'Belki, nadiren',
-      'Hayır, planlı bir çekme ihtiyacım yok',
-      'Kesinlikle hayır, bu para kilitlenmiş kabul edilebilir',
+      'Near retirement — capital preservation is my priority',
+      'Mid-career — I want both growth and stability',
+      'Early career — I am growth-focused',
+      'Young investor — I am targeting aggressive long-term growth',
+    ],
+  },
+  // ── Liquidity (Cat 4) ─────────────────────────────────────────
+  {
+    id: 13, category: 'Liquidity', categoryIndex: 4,
+    text: 'Do you have an emergency fund covering 3–6 months of expenses?',
+    options: [
+      'No emergency fund at all',
+      'Partial — about 1–2 months of expenses',
+      'Yes — I have a 3–6 month emergency fund',
+      'Yes — and it is kept entirely separate from this investment',
     ],
   },
   {
-    id: 15, category: 'Likidite', categoryIndex: 4,
-    text: 'Aylık düzenli yatırım yapabilir misiniz?',
+    id: 14, category: 'Liquidity', categoryIndex: 4,
+    text: 'How likely is it that you will need to withdraw from this portfolio on short notice?',
     options: [
-      'Hayır, tek seferlik yatırım yapıyorum',
-      'Belki, duruma göre',
-      'Evet, küçük ama düzenli eklemeler yapabilirim',
-      'Evet, önemli miktarda düzenli yatırım ekleyebilirim',
+      'Likely — I may need liquidity at any time',
+      'Possible — occasionally',
+      'Unlikely — I have no planned withdrawals',
+      'Not at all — this capital can be considered locked in',
+    ],
+  },
+  {
+    id: 15, category: 'Liquidity', categoryIndex: 4,
+    text: 'Are you able to make regular monthly contributions to this portfolio?',
+    options: [
+      'No — this is a one-time investment',
+      'Maybe — depends on circumstances',
+      'Yes — small but consistent additions',
+      'Yes — I can contribute a meaningful amount each month',
     ],
   },
 ]
 
 /** Returns score 0–3 for an answer (used to compute composite score) */
 export function scoreAnswer(questionId: number, optionIndex: number): number {
-  // Higher index = higher risk appetite
   return optionIndex
 }
 

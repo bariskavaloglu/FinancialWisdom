@@ -43,9 +43,11 @@ def _orm_to_schema(portfolio: Portfolio) -> PortfolioSchema:
                 name=inst_data.get("name", inst_data["ticker"]),
                 assetClass=inst_data.get("assetClass", alloc.asset_class),
                 exchange=inst_data.get("exchange", ""),
+                currency=inst_data.get("currency", "USD"),
                 currentPrice=inst_data.get("currentPrice", 0),
                 isActive=inst_data.get("isActive", True),
                 factorScore=factor_score,
+                whySelected=inst_data.get("whySelected", []),
             ))
         allocations.append(AssetAllocationSchema(
             allocationId=str(alloc.id),
@@ -66,6 +68,7 @@ def _orm_to_schema(portfolio: Portfolio) -> PortfolioSchema:
         allocations=allocations,
         portfolioScore=portfolio.portfolio_score,
         expectedVolatility=portfolio.expected_volatility,
+        expectedReturn=getattr(portfolio, 'expected_return', 0.0),
         explanation=portfolio.explanation,
     )
 

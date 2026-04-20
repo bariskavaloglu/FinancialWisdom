@@ -1,8 +1,8 @@
 /**
  * VerifyEmailPage — /verify-email?token=xxx
  *
- * Kullanıcı maildeki linke tıklayınca bu sayfaya gelir.
- * Backend'e token gönderir, başarılıysa JWT alır ve giriş yapılır.
+ * User lands here after clicking the link in the verification email.
+ * Sends the token to the backend; on success receives a JWT and logs the user in.
  */
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -25,20 +25,18 @@ export default function VerifyEmailPage() {
     const token = searchParams.get('token')
     if (!token) {
       setStatus('error')
-      setErrorMsg('Geçersiz doğrulama bağlantısı.')
+      setErrorMsg('Invalid verification link.')
       return
     }
 
     api.get(`/auth/verify-email?token=${token}`)
       .then(async ({ data }) => {
-        // Başarılı — token'ları kaydet ve giriş yap
         await loginWithTokens(data.accessToken, data.refreshToken)
         setStatus('success')
-        // 2 saniye sonra questionnaire'e yönlendir
         setTimeout(() => navigate('/questionnaire', { replace: true }), 2000)
       })
       .catch((err) => {
-        const detail = err?.response?.data?.detail ?? 'Doğrulama başarısız.'
+        const detail = err?.response?.data?.detail ?? 'Verification failed.'
         setErrorMsg(detail)
         setStatus('error')
       })
@@ -54,9 +52,9 @@ export default function VerifyEmailPage() {
               <Spinner size="lg" />
               <div>
                 <h2 className="font-display text-xl font-bold text-stone-900 mb-1">
-                  E-posta doğrulanıyor…
+                  Verifying your email…
                 </h2>
-                <p className="text-stone-500 text-sm">Lütfen bekleyin.</p>
+                <p className="text-stone-500 text-sm">Please wait.</p>
               </div>
             </>
           )}
@@ -68,10 +66,10 @@ export default function VerifyEmailPage() {
               </div>
               <div>
                 <h2 className="font-display text-xl font-bold text-stone-900 mb-1">
-                  E-posta doğrulandı!
+                  Email Verified!
                 </h2>
                 <p className="text-stone-500 text-sm">
-                  Giriş yapıldı. Risk anketine yönlendiriliyorsunuz…
+                  You are logged in. Redirecting to the risk questionnaire…
                 </p>
               </div>
               <Spinner size="sm" />
@@ -85,16 +83,16 @@ export default function VerifyEmailPage() {
               </div>
               <div>
                 <h2 className="font-display text-xl font-bold text-stone-900 mb-1">
-                  Doğrulama Başarısız
+                  Verification Failed
                 </h2>
                 <p className="text-stone-500 text-sm">{errorMsg}</p>
               </div>
               <div className="flex flex-col gap-3">
                 <Button onClick={() => navigate('/register')}>
-                  Tekrar Kayıt Ol
+                  Register Again
                 </Button>
                 <Button variant="secondary" onClick={() => navigate('/login')}>
-                  Giriş Sayfası
+                  Go to Login
                 </Button>
               </div>
             </>

@@ -1,19 +1,34 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1'
+
+// Per-endpoint timeout overrides (ms)
+const ENDPOINT_TIMEOUTS: Record<string, number> = {
+  'POST /assessments': 180_000,  // parallel fetch ~10s, but give lots of headroom   // portfolio generation can take up to 60s
+  'GET /instruments':  30_000,   // yfinance detail fetch
+}
+
+function resolveTimeout(config: AxiosRequestConfig): number {
+  const key = `${(config.method || 'GET').toUpperCase()} ${config.url || ''}`
+  for (const [pattern, ms] of Object.entries(ENDPOINT_TIMEOUTS)) {
+    if (key.startsWith(pattern)) return ms
+  }
+  return 15_000  // default 15s
+}
 
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  timeout: 15_000,
 })
 
-// ── Request interceptor: attach access token ──────────────────────────────────
+// ── Request interceptor: attach access token + per-endpoint timeout ───────────
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem('accessToken')
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  config.timeout = resolveTimeout(config)
   return config
 })
 
@@ -34,6 +49,24 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean
+    }
+
+    // Surface backend `detail` as a proper Error message
+    if (error.response?.data) {
+      const detail = (error.response.data as { detail?: string }).detail
+      if (detail) {
+        ;(error as Error & { userMessage?: string }).userMessage = detail
+      }
+    }
+
+    // Handle timeout with friendly message
+    if (error.code === 'ECONNABORTED') {
+      const timeoutError = new Error(
+        'The request took too long. The server is still working — please wait a moment and try again.'
+      ) as Error & { userMessage?: string; isTimeout?: boolean }
+      timeoutError.userMessage = timeoutError.message
+      timeoutError.isTimeout = true
+      return Promise.reject(timeoutError)
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
