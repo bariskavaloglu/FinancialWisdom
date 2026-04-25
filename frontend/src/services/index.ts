@@ -20,6 +20,7 @@ import { api } from '@/services/api'
 import type {
   AssessmentSubmitRequest,
   AssessmentResult,
+  AssessmentListItem,
   Portfolio,
   PortfolioComparison,
 } from '@/types'
@@ -41,6 +42,11 @@ export const assessmentService = {
       if (status === 404) return null
       throw err
     }
+  },
+
+  listAll: async (): Promise<AssessmentListItem[]> => {
+    const { data } = await api.get('/assessments/history')
+    return data
   },
 }
 

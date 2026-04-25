@@ -178,6 +178,10 @@ docker compose stop
 
 # Tüm container ve verileri sil
 docker compose down -v
+
+# Backend servislerini başlat ve Logları izle
+docker compose up -d db redis backend && docker compose logs backend -f
+
 ```
 
 ---

@@ -18,21 +18,18 @@ from app.core.redis_client import get_redis
 from app.dependencies import require_admin
 from app.models.user import User
 from app.schemas.admin import SystemConfig
-from app.services.portfolio_engine import ALLOCATION_MATRIX
-
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-# In-memory config store (persisted to DB in production; sufficient for MVP)
+# Algorithm D: weights now computed dynamically from questionnaire answers.
+# Static placeholder for admin UI display only.
 _current_config: dict = {
-    "factorWeights": {"momentum": 0.30, "value": 0.20, "quality": 0.30, "lowVolatility": 0.20},
+    "factorWeights": {"momentum": 0.35, "value": 0.20, "quality": 0.20, "lowVolatility": 0.25},
     "allocationMatrix": [
-        {"profile": p, "horizon": h,
-         "equityPct": ALLOCATION_MATRIX[p][h]["BIST_EQUITY"] + ALLOCATION_MATRIX[p][h]["SP500_EQUITY"],
-         "cryptoPct": ALLOCATION_MATRIX[p][h]["CRYPTOCURRENCY"],
-         "commodityPct": ALLOCATION_MATRIX[p][h]["COMMODITY"],
-         "cashPct": ALLOCATION_MATRIX[p][h]["CASH_EQUIVALENT"]}
-        for p in ALLOCATION_MATRIX for h in ALLOCATION_MATRIX[p]
+        {"profile": p, "horizon": h, "equityPct": 0, "cryptoPct": 0,
+         "commodityPct": 0, "cashPct": 0}
+        for p in ("conservative", "balanced", "aggressive")
+        for h in ("short", "medium", "long")
     ],
     "yfinanceCacheTtlMinutes": settings.YFINANCE_CACHE_TTL_MINUTES,
     "minDataCompleteness": settings.MIN_DATA_COMPLETENESS,

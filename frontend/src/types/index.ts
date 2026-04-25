@@ -56,6 +56,15 @@ export interface AssessmentSubmitRequest {
   answers: QuestionnaireAnswer[]
 }
 
+export interface AssessmentListItem {
+  assessmentId: string
+  profileType: ProfileType
+  investmentHorizon: HorizonType
+  compositeScore: number
+  portfolioId: string
+  completedAt: string
+}
+
 export interface AssessmentResult {
   assessmentId: string
   profileType: ProfileType

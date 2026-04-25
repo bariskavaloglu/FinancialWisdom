@@ -17,3 +17,13 @@ class AssessmentResult(BaseModel):
     compositeScore: int
     explanation: str
     portfolioId: str
+
+
+class AssessmentListItem(BaseModel):
+    """Dropdown listesi için hafif assessment özeti."""
+    assessmentId: str
+    profileType: str
+    investmentHorizon: str
+    compositeScore: int
+    portfolioId: str
+    completedAt: str

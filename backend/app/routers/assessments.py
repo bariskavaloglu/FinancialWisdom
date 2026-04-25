@@ -18,7 +18,7 @@ from app.dependencies import get_current_user
 from app.models.assessment import RiskAssessment
 from app.models.portfolio import AssetAllocation, Portfolio
 from app.models.user import User
-from app.schemas.assessment import AssessmentResult, AssessmentSubmitRequest
+from app.schemas.assessment import AssessmentListItem, AssessmentResult, AssessmentSubmitRequest
 from app.services.assessment_service import (
     classify_horizon,
     classify_profile,
@@ -68,8 +68,11 @@ def submit_assessment(
         Portfolio.is_current == True,
     ).update({"is_current": False})
 
+    # Cevapları Algorithm D'ye ilet — dinamik ağırlıklandırma için
+    raw_answers = [a.model_dump() for a in body.answers]
+
     try:
-        engine_result = build_portfolio(profile_type, horizon_type)
+        engine_result = build_portfolio(profile_type, horizon_type, answers=raw_answers)
     except Exception as exc:
         logger.error("Portfolio engine error: %s", exc, exc_info=True)
         db.rollback()
@@ -145,3 +148,37 @@ def get_latest_assessment(
         explanation=assessment.explanation or "",
         portfolioId=str(portfolio.id) if portfolio else "",
     )
+
+
+@router.get("/history", response_model=list[AssessmentListItem])
+def list_assessments(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Kullanıcının tüm assessment geçmişini döner (en yeni önce).
+    Dashboard dropdown için kullanılır.
+    """
+    assessments = (
+        db.query(RiskAssessment)
+        .filter(RiskAssessment.user_id == current_user.id)
+        .order_by(RiskAssessment.created_at.desc())
+        .all()
+    )
+
+    result = []
+    for a in assessments:
+        portfolio = (
+            db.query(Portfolio)
+            .filter(Portfolio.assessment_id == a.id)
+            .first()
+        )
+        result.append(AssessmentListItem(
+            assessmentId=str(a.id),
+            profileType=a.profile_type,
+            investmentHorizon=a.horizon_type,
+            compositeScore=a.composite_score,
+            portfolioId=str(portfolio.id) if portfolio else "",
+            completedAt=a.created_at.isoformat(),
+        ))
+    return result
