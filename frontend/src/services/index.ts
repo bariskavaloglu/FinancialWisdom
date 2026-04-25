@@ -1,20 +1,19 @@
 /**
- * services/index.ts — Backend API migration
- *
- * Supabase'e doğrudan yazılan tüm çağrılar artık FastAPI backend üzerinden gidiyor.
- * Interface'ler (fonksiyon imzaları, dönüş tipleri) aynı kaldı —
- * QuestionnairePage, DashboardPage vb. sayfalar değişmez.
+ * services/index.ts — Backend API calls
  *
  * Endpoint mapping:
- *   assessmentService.submit  → POST   /api/v1/assessments
- *   assessmentService.getLatest→ GET   /api/v1/assessments/latest
- *   portfolioService.getLatest → GET   /api/v1/portfolios/current
- *   portfolioService.getById   → GET   /api/v1/portfolios/:id
- *   portfolioService.list      → GET   /api/v1/portfolios
- *   portfolioService.compare   → GET   /api/v1/portfolios/compare?a=&b=
- *   instrumentService.getDetail→ GET   /api/v1/instruments/:ticker
- *   adminService.getConfig     → GET   /api/v1/admin/config
- *   adminService.updateConfig  → PUT   /api/v1/admin/config
+ *   assessmentService.submit    → POST  /api/v1/assessments
+ *   assessmentService.getLatest → GET   /api/v1/assessments/latest
+ *   portfolioService.getLatest  → GET   /api/v1/portfolios/current
+ *   portfolioService.getById    → GET   /api/v1/portfolios/:id
+ *   portfolioService.list       → GET   /api/v1/portfolios
+ *   portfolioService.compare    → GET   /api/v1/portfolios/compare?a=&b=
+ *   instrumentService.getDetail → GET   /api/v1/instruments/:ticker
+ *   poolService.getSnapshot     → GET   /api/v1/pool
+ *   poolService.getTicker       → GET   /api/v1/pool/:ticker
+ *   poolService.refresh         → GET   /api/v1/pool/refresh
+ *   adminService.getConfig      → GET   /api/v1/admin/config
+ *   adminService.updateConfig   → PUT   /api/v1/admin/config
  */
 
 import { api } from '@/services/api'
@@ -89,6 +88,30 @@ export const instrumentService = {
   },
 }
 
+// ─── Market Pool Service ──────────────────────────────────────────────────────
+
+export const poolService = {
+  /** Tüm universe tickerlarının anlık snapshot'ı */
+  getSnapshot: async (period = '1y', assetClass?: string) => {
+    const params: Record<string, string> = { period }
+    if (assetClass) params.asset_class = assetClass
+    const { data } = await api.get('/pool', { params })
+    return data
+  },
+
+  /** Tek ticker'ın tam geçmişi + factor skoru */
+  getTicker: async (ticker: string, period = '1y') => {
+    const { data } = await api.get(`/pool/${ticker}`, { params: { period } })
+    return data
+  },
+
+  /** Cache warmup tetikle */
+  refresh: async () => {
+    const { data } = await api.get('/pool/refresh')
+    return data
+  },
+}
+
 // ─── Admin Service ────────────────────────────────────────────────────────────
 
 export const adminService = {
@@ -118,14 +141,13 @@ export const adminService = {
 }
 
 // ─── Auth service — artık AuthContext tarafından yönetiliyor ─────────────────
-// Geriye dönük uyumluluk için stub'lar bırakıldı
 
 export const authService = {
   me: async () => {
     const { data } = await api.get('/auth/me')
     return data
   },
-  login: async () => { throw new Error('AuthContext kullan') },
+  login:    async () => { throw new Error('AuthContext kullan') },
   register: async () => { throw new Error('AuthContext kullan') },
-  logout: async () => { throw new Error('AuthContext kullan') },
+  logout:   async () => { throw new Error('AuthContext kullan') },
 }

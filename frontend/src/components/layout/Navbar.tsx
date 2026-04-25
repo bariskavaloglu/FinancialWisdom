@@ -21,21 +21,26 @@ export function Navbar() {
             <span className="text-xl">💰</span>
             <span className="font-display font-bold text-stone-900 text-lg">Financial Wisdom</span>
           </Link>
+
           <nav className="hidden md:flex items-center gap-7">
             {isAuthenticated ? (
               <>
-                <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
+                <NavLink to="/dashboard"     className={navLinkClass}>Dashboard</NavLink>
+                <NavLink to="/pool"          className={navLinkClass}>Market Pool</NavLink>  {/* ← NEW */}
                 <NavLink to="/questionnaire" className={navLinkClass}>Questionnaire</NavLink>
-                <NavLink to="/compare" className={navLinkClass}>Compare</NavLink>
-                {user?.role === 'admin' && <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>}
+                <NavLink to="/compare"       className={navLinkClass}>Compare</NavLink>
+                {user?.role === 'admin' && (
+                  <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>
+                )}
               </>
             ) : (
               <>
-                <a href="#about" className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors">About</a>
+                <a href="#about"       className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors">About</a>
                 <a href="#how-it-works" className="text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors">How It Works</a>
               </>
             )}
           </nav>
+
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <>

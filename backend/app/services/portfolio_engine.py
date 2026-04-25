@@ -18,36 +18,72 @@ from datetime import datetime, timezone
 
 from app.core.config import settings
 from app.services.factor_scoring import score_instruments
+from app.services.market_data import ALL_BIST
 
 logger = logging.getLogger(__name__)
 
+# ── BIST hisse isimleri (pool.py ile senkron) ─────────────────────────────────
+
+_BIST_NAMES: dict[str, str] = {
+    "AKBNK.IS": "Akbank",           "AKSEN.IS": "Aksa Enerji",
+    "ARCLK.IS": "Arçelik",          "ASELS.IS": "Aselsan",
+    "BIMAS.IS": "BİM Mağazalar",    "EKGYO.IS": "Emlak Konut GYO",
+    "EREGL.IS": "Erdemir",          "FROTO.IS": "Ford Otosan",
+    "GARAN.IS": "Garanti BBVA",     "GUBRF.IS": "Gübre Fabrikaları",
+    "HALKB.IS": "Halkbank",         "ISCTR.IS": "İş Bankası C",
+    "KCHOL.IS": "Koç Holding",      "KONTR.IS": "Kontrolmatik",
+    "KOZAA.IS": "Koza Anadolu",     "KOZAL.IS": "Koza Altın",
+    "KRDMD.IS": "Kardemir D",       "MGROS.IS": "Migros",
+    "ODAS.IS":  "Odaş Elektrik",    "OYAKC.IS": "Oyak Çimento",
+    "PETKM.IS": "Petkim",           "SAHOL.IS": "Sabancı Holding",
+    "SASA.IS":  "SASA Polyester",   "SISE.IS":  "Şişecam",
+    "TAVHL.IS": "TAV Havalimanları","TCELL.IS": "Turkcell",
+    "THYAO.IS": "Türk Hava Yolları","TOASO.IS": "Tofaş",
+    "TUPRS.IS": "Tüpraş",           "VAKBN.IS": "Vakıfbank",
+    "YKBNK.IS": "Yapı Kredi",       "AEFES.IS": "Anadolu Efes",
+    "AKGRT.IS": "Aksigorta",        "ALARK.IS": "Alarko Holding",
+    "ANHYT.IS": "Anadolu Hayat",    "ANSGR.IS": "Anadolu Sigorta",
+    "ASUZU.IS": "Anadolu Isuzu",    "AYDEN.IS": "Aydem Enerji",
+    "BRISA.IS": "Brisa",            "BRYAT.IS": "Borusan Yatırım",
+    "CCOLA.IS": "Coca-Cola İçecek", "CIMSA.IS": "Çimsa",
+    "CLEBI.IS": "Çelebi Hava",      "DOAS.IS":  "Doğuş Otomotiv",
+    "DOHOL.IS": "Doğan Holding",    "ENKAI.IS": "Enka İnşaat",
+    "ENJSA.IS": "Enerjisa Enerji",  "ISGYO.IS": "İş GYO",
+    "KORDS.IS": "Kordsa",           "LOGO.IS":  "Logo Yazılım",
+    "MAVI.IS":  "Mavi Giyim",       "MPARK.IS": "MLP Sağlık",
+    "OTKAR.IS": "Otokar",           "PGSUS.IS": "Pegasus",
+    "SAHOL.IS": "Sabancı Holding",  "SARKY.IS": "Sarkuysan",
+    "SOKM.IS":  "Şok Marketler",    "TATGD.IS": "Tat Gıda",
+    "TCELL.IS": "Turkcell",         "TRGYO.IS": "Torunlar GYO",
+    "TTKOM.IS": "Türk Telekom",     "VESTL.IS": "Vestel",
+    "ZOREN.IS": "Zorlu Enerji",
+}
+
 # ── Candidate instrument universe ─────────────────────────────────────────────
+# BIST listesi market_data.ALL_BIST'ten otomatik gelir — burayı elle düzenleme
 
 CANDIDATE_UNIVERSE: dict[str, list[dict]] = {
     "BIST_EQUITY": [
-        {"ticker": "THYAO.IS", "name": "Turkish Airlines", "exchange": "BIST"},
-        {"ticker": "GARAN.IS", "name": "Garanti BBVA",     "exchange": "BIST"},
-        {"ticker": "EREGL.IS", "name": "Erdemir Steel",    "exchange": "BIST"},
-        {"ticker": "AKBNK.IS", "name": "Akbank",           "exchange": "BIST"},
-        {"ticker": "KCHOL.IS", "name": "Koç Holding",      "exchange": "BIST"},
+        {"ticker": t, "name": _BIST_NAMES.get(t, t.replace(".IS", "")), "exchange": "BIST"}
+        for t in ALL_BIST
     ],
     "SP500_EQUITY": [
-        {"ticker": "SPY", "name": "SPDR S&P 500 ETF",    "exchange": "NYSE"},
-        {"ticker": "QQQ", "name": "Invesco QQQ (NASDAQ)", "exchange": "NASDAQ"},
-        {"ticker": "VTI", "name": "Vanguard Total Market","exchange": "NYSE"},
+        {"ticker": "SPY", "name": "SPDR S&P 500 ETF",     "exchange": "NYSE"},
+        {"ticker": "QQQ", "name": "Invesco QQQ (NASDAQ)",  "exchange": "NASDAQ"},
+        {"ticker": "VTI", "name": "Vanguard Total Market", "exchange": "NYSE"},
     ],
     "COMMODITY": [
-        {"ticker": "GLD", "name": "SPDR Gold Shares",    "exchange": "NYSE"},
-        {"ticker": "SLV", "name": "iShares Silver Trust","exchange": "NYSE"},
-        {"ticker": "IAU", "name": "iShares Gold Trust",  "exchange": "NYSE"},
+        {"ticker": "GLD", "name": "SPDR Gold Shares",     "exchange": "NYSE"},
+        {"ticker": "SLV", "name": "iShares Silver Trust", "exchange": "NYSE"},
+        {"ticker": "IAU", "name": "iShares Gold Trust",   "exchange": "NYSE"},
     ],
     "CRYPTOCURRENCY": [
         {"ticker": "BTC-USD", "name": "Bitcoin",  "exchange": "CRYPTO"},
         {"ticker": "ETH-USD", "name": "Ethereum", "exchange": "CRYPTO"},
     ],
     "CASH_EQUIVALENT": [
-        {"ticker": "BIL",  "name": "SPDR Bloomberg 1-3 Month T-Bill", "exchange": "NYSE"},
-        {"ticker": "SGOV", "name": "iShares 0-3 Month Treasury Bond", "exchange": "NYSE"},
+        {"ticker": "BIL",  "name": "SPDR Bloomberg 1-3 Month T-Bill",  "exchange": "NYSE"},
+        {"ticker": "SGOV", "name": "iShares 0-3 Month Treasury Bond",  "exchange": "NYSE"},
     ],
 }
 
@@ -175,11 +211,11 @@ def _why_selected(factor_score: dict | None) -> list[str]:
     if factor_score.get("momentum", 0) >= 65:
         reasons.append("Strong price momentum (12-month return)")
     if factor_score.get("quality", 0) >= 65:
-        reasons.append("High quality score (strong ROE)")
+        reasons.append("Consistent uptrend quality (Calmar-style score)")
     if factor_score.get("volatility", 0) >= 65:
         reasons.append("Low volatility — capital preservation")
     if factor_score.get("value", 0) >= 65:
-        reasons.append("Attractive valuation (low P/B ratio)")
+        reasons.append("Attractive entry point (below 52-week high)")
     if not reasons:
         reasons.append("Balanced factor profile — portfolio diversification")
     return reasons

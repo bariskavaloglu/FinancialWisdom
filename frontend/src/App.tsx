@@ -15,6 +15,7 @@ const ComparePage       = lazy(() => import('@/pages/ComparePage'))
 const AdminPage         = lazy(() => import('@/pages/AdminPage'))
 const NotFoundPage      = lazy(() => import('@/pages/NotFoundPage'))
 const VerifyEmailPage   = lazy(() => import('@/pages/VerifyEmailPage'))
+const MarketPoolPage    = lazy(() => import('@/pages/MarketPoolPage'))   // ← NEW
 
 // ─── Guards ───────────────────────────────────────────────────────────────────
 
@@ -74,11 +75,12 @@ export default function App() {
 
             {/* Protected (login required) */}
             <Route element={<PrivateRoute />}>
-              <Route path="/questionnaire"   element={<QuestionnairePage />} />
-              <Route path="/profile/result"  element={<ProfileResultPage />} />
-              <Route path="/dashboard"       element={<DashboardPage />} />
-              <Route path="/instrument/:ticker"  element={<AssetDetailPage />} />
-              <Route path="/compare"         element={<ComparePage />} />
+              <Route path="/questionnaire"      element={<QuestionnairePage />} />
+              <Route path="/profile/result"     element={<ProfileResultPage />} />
+              <Route path="/dashboard"          element={<DashboardPage />} />
+              <Route path="/instrument/:ticker" element={<AssetDetailPage />} />
+              <Route path="/compare"            element={<ComparePage />} />
+              <Route path="/pool"               element={<MarketPoolPage />} />  {/* ← NEW */}
             </Route>
 
             {/* Admin only */}
