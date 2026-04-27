@@ -36,7 +36,8 @@ export default function LoginPage() {
           <h1 className="font-display text-3xl font-bold text-stone-900 mb-2">Welcome back</h1>
           <p className="text-stone-500 text-sm">Sign in to your account</p>
         </div>
-        {error && <Alert variant="error" className="mb-4">{error}</Alert>}
+        {error && <div className="mb-4"><Alert variant="error">{error}</Alert></div>}
+
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <FormField label="Email address" htmlFor="email" required>
             <Input

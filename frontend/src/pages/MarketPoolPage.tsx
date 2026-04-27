@@ -5,7 +5,7 @@ import { Spinner } from '@/components/ui/index'
 import { useApi } from '@/hooks/useApi'
 import { api } from '@/services/api'
 import {
-  LineChart, Line, AreaChart, Area,
+  AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Cell,
 } from 'recharts'
@@ -387,7 +387,7 @@ function TickerDrawer({ ticker, period, onClose }: {
 }) {
   const { data, isLoading } = useApi(
     () => ticker ? api.get(`/pool/${ticker}?period=${period}`).then(r => r.data) : Promise.resolve(null),
-    [ticker, period]
+    [ticker, period] as any
   )
 
   if (!ticker) return null
@@ -400,7 +400,7 @@ function TickerDrawer({ ticker, period, onClose }: {
       }))
     : []
 
-  const meta = TICKER_META[ticker] ?? {}
+  const meta: { assetClass?: string; exchange?: string; name?: string } = {}
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end pointer-events-none">
@@ -552,7 +552,7 @@ export default function MarketPoolPage() {
       if (filterClass !== 'ALL') params.set('asset_class', filterClass)
       return api.get(`/pool?${params}`).then(r => r.data)
     },
-    [period, filterClass]
+    [period, filterClass] as any
   )
 
   const items = useMemo(() => {
