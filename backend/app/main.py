@@ -77,7 +77,11 @@ origins = [
     "http://127.0.0.1:5173",
 ]
 if settings.ENVIRONMENT == "production":
-    origins = ["https://financialwisdom.app"]
+    origins = [
+        "https://financialwisdom.me",
+        "https://www.financialwisdom.me",
+        settings.FRONTEND_URL,
+    ]
 
 app.add_middleware(
     CORSMiddleware,
