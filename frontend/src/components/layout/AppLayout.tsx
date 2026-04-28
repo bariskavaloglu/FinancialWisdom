@@ -1,4 +1,5 @@
 import { Navbar } from './Navbar'
+import { useThemeLang } from '@/context/ThemeLanguageContext'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -6,16 +7,17 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, fullWidth = false }: AppLayoutProps) {
+  const { t } = useThemeLang()
   return (
-    <div className="min-h-screen flex flex-col bg-stone-100">
+    <div className="min-h-screen flex flex-col bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
       <Navbar />
       <main className={`flex-1 py-8 px-4 sm:px-6 lg:px-8 ${fullWidth ? '' : 'max-w-7xl mx-auto w-full'}`}>
         {children}
       </main>
-      <footer className="border-t border-stone-200 py-6 px-4 bg-stone-100">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-stone-400">
+      <footer className="border-t border-stone-200 dark:border-stone-800 py-6 px-4 bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-stone-400 dark:text-stone-500">
           <span>© 2026 Financial Wisdom · Şile Işık Üniversitesi</span>
-          <span>⚠ For educational purposes only. Not financial advice.</span>
+          <span>{t('footer.educational')}</span>
         </div>
       </footer>
     </div>
@@ -24,7 +26,7 @@ export function AppLayout({ children, fullWidth = false }: AppLayoutProps) {
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-stone-100">
+    <div className="min-h-screen flex flex-col bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
       <Navbar />
       <main className="flex-1 flex items-start justify-center px-4 py-12">
         {children}

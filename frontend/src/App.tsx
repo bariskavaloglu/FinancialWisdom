@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
+import { ThemeLanguageProvider } from '@/context/ThemeLanguageContext'
 
 // Pages (lazy-loaded for performance)
 import { lazy, Suspense } from 'react'
@@ -59,6 +60,7 @@ function PageLoader() {
 
 export default function App() {
   return (
+    <ThemeLanguageProvider>
     <AuthProvider>
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
@@ -94,5 +96,6 @@ export default function App() {
         </Suspense>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeLanguageProvider>
   )
 }

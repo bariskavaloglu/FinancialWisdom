@@ -10,7 +10,7 @@ const variants = {
   primary:   'btn-primary',
   secondary: 'btn-secondary',
   ghost:     'btn-ghost',
-  danger:    'inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-50 text-red-700 border border-red-200 font-medium rounded-lg hover:bg-red-100 transition-all duration-200 disabled:opacity-40',
+  danger:    'inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 font-medium rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-200 disabled:opacity-40',
 }
 
 const sizes = {
