@@ -129,7 +129,13 @@ function WinnerBadge({ winner, label }: { winner: 'A' | 'B' | 'tie'; label: stri
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ComparePage() {
-  const { t } = useThemeLang()
+  const { t, theme } = useThemeLang()
+  const tooltipStyle = {
+    background: theme === 'dark' ? '#1c1917' : '#fff',
+    border: theme === 'dark' ? '1px solid #44403c' : '1px solid #e7e5e4',
+    borderRadius: 8,
+    color: theme === 'dark' ? '#f5f5f4' : '#1c1917',
+  }
   const [selectedA, setSelectedA] = useState<string>('')
   const [selectedB, setSelectedB] = useState<string>('')
   const [compared,  setCompared]  = useState<[Portfolio, Portfolio] | null>(null)
@@ -306,7 +312,7 @@ export default function ComparePage() {
               <ResponsiveContainer width="100%" height={280}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="rgba(120,113,108,0.2)" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#78716c', fontSize: 12 }} />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: theme === "dark" ? "#a8a29e" : "#78716c", fontSize: 12 }} />
                   <Radar name={t('compare.scenarioA')} dataKey="A" stroke={COLOR_A} fill={COLOR_A} fillOpacity={0.2} strokeWidth={2} />
                   <Radar name={t('compare.scenarioB')} dataKey="B" stroke={COLOR_B} fill={COLOR_B} fillOpacity={0.2} strokeWidth={2} />
                   <Tooltip
@@ -324,7 +330,7 @@ export default function ComparePage() {
               </h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={barData} barSize={18}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(120,113,108,0.1)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"} />
                   <XAxis dataKey="name" tick={{ fill: '#78716c', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis domain={[0, 100]} tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} unit="%" />
                   <Tooltip

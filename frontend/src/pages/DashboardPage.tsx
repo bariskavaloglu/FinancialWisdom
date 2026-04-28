@@ -19,7 +19,7 @@ import type { AssetClass, Portfolio, AssessmentListItem } from '@/types'
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const ASSET_COLORS: Record<AssetClass, string> = {
-  BIST_EQUITY:    '#1c1917',
+  BIST_EQUITY:    '#D97706',
   SP500_EQUITY:   '#3B82F6',
   COMMODITY:      '#22C55E',
   CRYPTOCURRENCY: '#A78BFA',
@@ -332,7 +332,13 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 // ─── Allocation Pie ───────────────────────────────────────────────────────────
 
 function AllocationPie({ portfolio }: { portfolio: Portfolio }) {
-  const { t } = useThemeLang()
+  const { t, theme } = useThemeLang()
+  const tooltipStyle = {
+    background: theme === 'dark' ? '#1c1917' : '#fff',
+    border: theme === 'dark' ? '1px solid #44403c' : '1px solid #e7e5e4',
+    borderRadius: 8,
+    color: theme === 'dark' ? '#f5f5f4' : '#1c1917',
+  }
   const data = portfolio.allocations
     .filter((a) => a.targetWeight > 0)
     .map((a) => ({
@@ -353,7 +359,7 @@ function AllocationPie({ portfolio }: { portfolio: Portfolio }) {
               {data.map((entry, i) => <Cell key={i} fill={entry.color} stroke="transparent" />)}
             </Pie>
             <Tooltip
-              contentStyle={{ background: 'var(--tw-bg)', border: '1px solid #e7e5e4', borderRadius: 8 }}
+              contentStyle={tooltipStyle}
               formatter={(v: number) => [`${v}%`, '']}
             />
           </PieChart>
@@ -476,7 +482,14 @@ function InstrumentTable({ portfolio }: { portfolio: Portfolio }) {
 // ─── Factor Score Chart ───────────────────────────────────────────────────────
 
 function FactorScoreChart({ portfolio }: { portfolio: Portfolio }) {
-  const { t } = useThemeLang()
+  const { t, theme } = useThemeLang()
+  const barColor = theme === 'dark' ? '#f5f5f4' : '#1c1917'
+  const tooltipStyle = {
+    background: theme === 'dark' ? '#1c1917' : '#fff',
+    border: theme === 'dark' ? '1px solid #44403c' : '1px solid #e7e5e4',
+    borderRadius: 8,
+    color: theme === 'dark' ? '#f5f5f4' : '#1c1917',
+  }
   const instruments = portfolio.allocations
     .flatMap((a) => a.instruments ?? [])
     .filter((i) => i.factorScore)
@@ -492,14 +505,14 @@ function FactorScoreChart({ portfolio }: { portfolio: Portfolio }) {
       </h3>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart data={instruments} barSize={22}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(120,113,108,0.1)" />
-          <XAxis dataKey="name" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis domain={[0, 100]} tick={{ fill: '#78716c', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"} />
+          <XAxis dataKey="name" tick={{ fill: theme === "dark" ? "#a8a29e" : "#78716c", fontSize: 10 }} axisLine={false} tickLine={false} />
+          <YAxis domain={[0, 100]} tick={{ fill: theme === "dark" ? "#a8a29e" : "#78716c", fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
-            contentStyle={{ background: '#fff', border: '1px solid #e7e5e4', borderRadius: 8 }}
+            contentStyle={tooltipStyle}
             formatter={(v: number) => [v, 'Composite Score']}
           />
-          <Bar dataKey="score" fill="#1c1917" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="score" fill={barColor} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
