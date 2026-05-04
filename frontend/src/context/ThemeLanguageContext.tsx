@@ -13,6 +13,30 @@ interface ThemeLanguageContextValue {
   t: (key: string) => string
 }
 
+// ─── Sistem tercihlerinden başlangıç değerlerini belirle ──────────────────────
+
+/**
+ * İlk ziyarette (localStorage yoksa) cihaz/sistem tercihlerine bak:
+ *   - Tema  : window.matchMedia('(prefers-color-scheme: dark)')
+ *   - Dil   : navigator.language — 'tr' ile başlıyorsa Türkçe, değilse İngilizce
+ *
+ * Kullanıcı daha önce manuel seçim yaptıysa localStorage önceliklidir.
+ */
+function getInitialTheme(): Theme {
+  const stored = localStorage.getItem('fw-theme') as Theme | null
+  if (stored === 'light' || stored === 'dark') return stored
+  // İlk ziyaret → sistem teması
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function getInitialLanguage(): Language {
+  const stored = localStorage.getItem('fw-lang') as Language | null
+  if (stored === 'en' || stored === 'tr') return stored
+  // İlk ziyaret → tarayıcı/sistem dili
+  const lang = (navigator.language || navigator.languages?.[0] || 'en').toLowerCase()
+  return lang.startsWith('tr') ? 'tr' : 'en'
+}
+
 // ─── Translations ─────────────────────────────────────────────────────────────
 
 const translations: Record<Language, Record<string, string>> = {
@@ -144,6 +168,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.loading':   'Loading…',
     'common.current':   'Current',
     'common.score':     'Score',
+
     // Settings
     'settings.profile':    'My Profile',
     'settings.preferences':'Preferences',
@@ -313,6 +338,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.loading':   'Yükleniyor…',
     'common.current':   'Mevcut',
     'common.score':     'Skor',
+
     // Settings
     'settings.profile':    'Profilim',
     'settings.preferences':'Tercihler',
@@ -360,10 +386,24 @@ const translations: Record<Language, Record<string, string>> = {
 const ThemeLanguageContext = createContext<ThemeLanguageContextValue | null>(null)
 
 export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme]       = useState<Theme>(() => (localStorage.getItem('fw-theme') as Theme) ?? 'light')
-  const [language, setLanguage] = useState<Language>(() => (localStorage.getItem('fw-lang') as Language) ?? 'tr')
+  const [theme, setTheme]       = useState<Theme>(getInitialTheme)
+  const [language, setLanguage] = useState<Language>(getInitialLanguage)
 
-  // Apply dark class to <html>
+  // Sistem teması değişirse (kullanıcı OS temasını değiştirirse) takip et
+  // — ama sadece kullanıcı manuel seçim yapmamışsa
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent) => {
+      const stored = localStorage.getItem('fw-theme')
+      if (!stored) {
+        setTheme(e.matches ? 'dark' : 'light')
+      }
+    }
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  // dark class'ını <html>'e uygula
   useEffect(() => {
     const root = document.documentElement
     if (theme === 'dark') {
@@ -381,7 +421,8 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
   const toggleTheme    = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'))
   const toggleLanguage = () => setLanguage((l) => (l === 'en' ? 'tr' : 'en'))
 
-  const t = (key: string): string => translations[language][key] ?? translations['en'][key] ?? key
+  const t = (key: string): string =>
+    translations[language][key] ?? translations['en'][key] ?? key
 
   return (
     <ThemeLanguageContext.Provider value={{ theme, language, toggleTheme, toggleLanguage, t }}>

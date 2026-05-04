@@ -51,12 +51,12 @@ export default function AssetDetailPage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <button onClick={() => navigate(-1)} className="text-sm text-stone-400 hover:text-stone-900 mb-2 transition-colors">
+            <button onClick={() => navigate(-1)} className="text-sm text-stone-400 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 mb-2 transition-colors">
               ← Dashboard
             </button>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-display font-medium text-stone-900">{data.ticker}</h1>
-              <span className="text-xs px-2 py-1 rounded-full bg-stone-50 border border-stone-200 text-stone-500">
+              <h1 className="text-2xl font-display font-medium text-stone-900 dark:text-stone-100">{data.ticker}</h1>
+              <span className="text-xs px-2 py-1 rounded-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-600 text-stone-500 dark:text-stone-400">
                 {/* DÜZELTME: Optional chaining ve fallback ile beyaz ekran hatası engellendi */}
                 {data.assetClass ? data.assetClass.replace('_', ' ') : 'Hisse Senedi'}
               </span>
@@ -64,7 +64,7 @@ export default function AssetDetailPage() {
             <p className="text-stone-500 text-sm mt-1">{data.name} · {data.exchange}</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-mono font-medium text-stone-900">
+            <p className="text-2xl font-mono font-medium text-stone-900 dark:text-stone-100">
               {data.currentPrice?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {data.currency === 'TRY' ? '₺' : '$'}
             </p>
           </div>
@@ -77,7 +77,7 @@ export default function AssetDetailPage() {
             <div className="flex gap-1">
               {RANGES.map((r) => (
                 <button key={r} onClick={() => setRange(r)}
-                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${range === r ? 'bg-stone-900 text-white font-medium' : 'text-stone-400 hover:text-stone-900 hover:bg-stone-50'}`}>
+                  className={`px-3 py-1 text-xs rounded-lg transition-colors ${range === r ? 'bg-stone-900 dark:bg-stone-100 dark:text-stone-900 text-white font-medium' : 'text-stone-400 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800'}`}>
                   {r}
                 </button>
               ))}
@@ -110,9 +110,9 @@ export default function AssetDetailPage() {
                 <div key={label} className="space-y-1">
                   <div className="flex justify-between text-sm">
                     <span className="text-stone-500">{label}</span>
-                    <span className="text-stone-900 font-mono">{value} / 100</span>
+                    <span className="text-stone-900 dark:text-stone-100 font-mono">{value} / 100</span>
                   </div>
-                  <div className="h-1 bg-stone-50 rounded-full">
+                  <div className="h-1 bg-stone-50 dark:bg-stone-700 rounded-full">
                     <div className="h-full bg-stone-900 rounded-full" style={{ width: `${value}%` }} />
                   </div>
                 </div>
@@ -134,7 +134,7 @@ export default function AssetDetailPage() {
                 ].filter((m) => m.value).map(({ label, value }) => (
                   <div key={label}>
                     <p className="text-xs text-stone-400">{label}</p>
-                    <p className="text-sm font-medium text-stone-900">{value}</p>
+                    <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{value}</p>
                   </div>
                 ))}
               </div>

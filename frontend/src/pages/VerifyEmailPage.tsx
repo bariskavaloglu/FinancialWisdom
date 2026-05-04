@@ -51,7 +51,7 @@ export default function VerifyEmailPage() {
             <>
               <Spinner size="lg" />
               <div>
-                <h2 className="font-display text-xl font-bold text-stone-900 mb-1">
+                <h2 className="font-display text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">
                   Verifying your email…
                 </h2>
                 <p className="text-stone-500 text-sm">Please wait.</p>
@@ -65,7 +65,7 @@ export default function VerifyEmailPage() {
                 ✅
               </div>
               <div>
-                <h2 className="font-display text-xl font-bold text-stone-900 mb-1">
+                <h2 className="font-display text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">
                   Email Verified!
                 </h2>
                 <p className="text-stone-500 text-sm">
@@ -82,7 +82,7 @@ export default function VerifyEmailPage() {
                 ❌
               </div>
               <div>
-                <h2 className="font-display text-xl font-bold text-stone-900 mb-1">
+                <h2 className="font-display text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">
                   Verification Failed
                 </h2>
                 <p className="text-stone-500 text-sm">{errorMsg}</p>

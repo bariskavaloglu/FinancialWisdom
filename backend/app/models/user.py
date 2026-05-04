@@ -37,6 +37,10 @@ class User(Base):
     portfolios: Mapped[list["Portfolio"]] = relationship(  # noqa: F821
         "Portfolio", back_populates="user", cascade="all, delete-orphan"
     )
+    admin_overrides: Mapped[list["AdminOverride"]] = relationship(  # noqa: F821
+        "AdminOverride", foreign_keys="AdminOverride.user_id",
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.email} [verified={self.is_email_verified}]>"

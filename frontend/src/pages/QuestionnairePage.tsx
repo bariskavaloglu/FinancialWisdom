@@ -84,13 +84,13 @@ export default function QuestionnairePage() {
                   i < categoryStep
                     ? 'bg-stone-900 border-stone-400 text-white'
                     : i === categoryStep
-                    ? 'border-stone-400 text-stone-900 bg-stone-100'
+                    ? 'border-stone-400 dark:border-stone-500 text-stone-900 dark:text-stone-100 bg-stone-100 dark:bg-stone-700'
                     : 'border-stone-200 text-stone-400 bg-transparent'
                 }`}>
                   {i < categoryStep ? '✓' : i + 1}
                 </div>
                 <span className={`text-xs hidden sm:block text-center leading-tight ${
-                  i === categoryStep ? 'text-stone-900' : i < categoryStep ? 'text-stone-500' : 'text-stone-300'
+                  i === categoryStep ? 'text-stone-900 dark:text-stone-100' : i < categoryStep ? 'text-stone-500 dark:text-stone-400' : 'text-stone-300 dark:text-stone-600'
                 }`}>
                   {cat}
                 </span>
@@ -102,7 +102,7 @@ export default function QuestionnairePage() {
             ))}
           </div>
           {/* Linear progress */}
-          <div className="h-1 bg-stone-50 rounded-full overflow-hidden">
+          <div className="h-1 bg-stone-50 dark:bg-stone-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-stone-900 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -121,7 +121,7 @@ export default function QuestionnairePage() {
           </p>
 
           {/* Question text */}
-          <h2 className="text-xl font-medium text-stone-900 leading-snug mb-6">
+          <h2 className="text-xl font-medium text-stone-900 dark:text-stone-100 leading-snug mb-6">
             {question.text}
           </h2>
 
@@ -135,8 +135,8 @@ export default function QuestionnairePage() {
                   onClick={() => selectOption(i)}
                   className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all duration-200 group ${
                     isSelected
-                      ? 'border-stone-400 bg-stone-100 text-stone-900'
-                      : 'border-stone-200 bg-stone-50/50 text-stone-600 hover:border-stone-300 hover:text-stone-900 hover:bg-stone-50'
+                      ? 'border-stone-400 dark:border-stone-500 bg-stone-100 dark:bg-stone-700 text-stone-900 dark:text-stone-100'
+                      : 'border-stone-200 dark:border-stone-600 bg-stone-50/50 dark:bg-stone-800/50 text-stone-600 dark:text-stone-400 hover:border-stone-300 dark:hover:border-stone-500 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-800'
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -147,7 +147,7 @@ export default function QuestionnairePage() {
                     </span>
                     <span className="text-sm leading-snug">{option}</span>
                     {isSelected && (
-                      <span className="ml-auto text-xs font-medium text-stone-900 bg-stone-200 px-2 py-0.5 rounded-full">
+                      <span className="ml-auto text-xs font-medium text-stone-900 dark:text-stone-100 bg-stone-200 dark:bg-stone-600 px-2 py-0.5 rounded-full">
                         Selected
                       </span>
                     )}
@@ -161,7 +161,7 @@ export default function QuestionnairePage() {
           {question.helpText && (
             <div className="mb-4">
               <button
-                className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-900 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
                 onClick={() => setShowHelp(!showHelp)}
               >
                 <span>💡</span> Why is this question asked?

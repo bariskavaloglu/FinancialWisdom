@@ -6,7 +6,7 @@ import type { AssessmentResult } from '@/types'
 
 const PROFILE_INFO = {
   conservative: { icon: '🛡', label: 'Conservative', color: 'text-blue-400', desc: 'Capital preservation is your priority. Low-risk, liquid instruments are recommended.' },
-  balanced:     { icon: '⚖', label: 'Balanced',     color: 'text-stone-900',  desc: 'You balance growth and capital protection.' },
+  balanced:     { icon: '⚖', label: 'Balanced',     color: 'text-stone-900 dark:text-stone-100',  desc: 'You balance growth and capital protection.' },
   aggressive:   { icon: '🚀', label: 'Aggressive',   color: 'text-red-400',  desc: 'You target maximum growth with a high risk tolerance.' },
 }
 
@@ -36,11 +36,11 @@ export default function ProfileResultPage() {
         {/* Profile card */}
         <div className="card text-center space-y-4">
           <div className="text-5xl">{profile.icon}</div>
-          <h1 className="font-display text-3xl text-stone-900">Your Investor Profile</h1>
+          <h1 className="font-display text-3xl text-stone-900 dark:text-stone-100">Your Investor Profile</h1>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <span className={`text-xl font-medium ${profile.color}`}>{profile.label}</span>
             <span className="text-stone-300">+</span>
-            <span className="text-stone-600">{HORIZON_LABEL[result.investmentHorizon]}</span>
+            <span className="text-stone-600 dark:text-stone-400">{HORIZON_LABEL[result.investmentHorizon]}</span>
           </div>
           <p className="text-stone-500 text-sm max-w-sm mx-auto">{profile.desc}</p>
         </div>
@@ -54,9 +54,9 @@ export default function ProfileResultPage() {
             <div key={label} className="space-y-1">
               <div className="flex justify-between text-sm">
                 <span className="text-stone-500">{label}</span>
-                <span className="text-stone-900 font-mono">{value} / 100</span>
+                <span className="text-stone-900 dark:text-stone-100 font-mono">{value} / 100</span>
               </div>
-              <div className="h-1.5 bg-stone-50 rounded-full">
+              <div className="h-1.5 bg-stone-50 dark:bg-stone-700 rounded-full">
                 <div className="h-full bg-stone-900 rounded-full transition-all" style={{ width: `${value}%` }} />
               </div>
             </div>
@@ -67,7 +67,7 @@ export default function ProfileResultPage() {
         {result.explanation && (
           <div className="card">
             <p className="text-xs text-stone-400 uppercase tracking-widest mb-2">Explanation</p>
-            <p className="text-stone-600 text-sm leading-relaxed">{result.explanation}</p>
+            <p className="text-stone-600 dark:text-stone-400 text-sm leading-relaxed">{result.explanation}</p>
           </div>
         )}
 

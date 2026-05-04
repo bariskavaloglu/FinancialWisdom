@@ -1,106 +1,26 @@
-# 💰 FinancialWisdom
+# FinancialWisdom
 
-Kişiselleştirilmiş portföy oluşturma ve yatırım karar destek platformu.
-
-> Şile Işık Üniversitesi — Mezuniyet Projesi 2026
+Kişiselleştirilmiş portföy öneri sistemi — FastAPI + React + PostgreSQL + Redis.
 
 ---
 
-## 📌 Proje Hakkında
+## Hızlı Başlangıç
 
-FinancialWisdom, kullanıcıların risk profillerini belirleyip buna uygun yatırım portföyü önerisi aldığı bir web uygulamasıdır. 15 soruluk anket ile kullanıcının finansal hedefleri, risk toleransı ve yatırım ufku analiz edilir. Sonuçlar BIST hisseleri, ETF'ler ve emtialar arasında dağıtılmış kişisel bir portföy olarak sunulur.
-
-### Özellikler
-
-- 📋 15 soruluk risk profili anketi (5 kategori)
-- 📊 Kişiselleştirilmiş portföy önerisi
-- 📈 Faktör skoru ve momentum analizi
-- 🔄 Senaryo karşılaştırma
-- 📧 E-posta doğrulama sistemi
-- 👤 Kullanıcı kimlik doğrulama (JWT)
-
----
-
-## 🛠️ Teknoloji Stack
-
-| Katman | Teknoloji |
-|--------|-----------|
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS |
-| Backend | Python 3.11, FastAPI, SQLAlchemy |
-| Veritabanı | PostgreSQL 15 |
-| Cache | Redis 7 |
-| Container | Docker, Docker Compose |
-
----
-
-## ✅ Ön Gereksinimler
-
-Kurulum öncesi bilgisayarında şunların kurulu olması gerekiyor:
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (v24+)
-- [Node.js](https://nodejs.org/) (v18+)
-- [Git](https://git-scm.com/)
-
----
-
-## 🚀 Kurulum
-
-### 1. Projeyi Klonla
+### 1. Ortam değişkenleri
 
 ```bash
-git clone https://github.com/KULLANICI_ADIN/FinancialWisdom.git
-cd FinancialWisdom
+cp backend/.env.example backend/.env
+# backend/.env dosyasını düzenleyin
 ```
 
-### 2. Backend `.env` Dosyasını Oluştur
+### 2. Docker Compose ile çalıştır
 
 ```bash
 cd backend
-copy .env.example .env   # Windows
-cp .env.example .env     # Mac/Linux
+docker-compose up --build
 ```
 
-`.env` dosyasını aç ve `SECRET_KEY` alanını doldur:
-
-```bash
-# Terminalde güvenli key üret:
-python -c "import secrets; print(secrets.token_hex(32))"
-```
-
-Üretilen değeri `.env` içine yapıştır:
-
-```env
-SECRET_KEY=buraya_üretilen_değeri_yapıştır
-```
-
-> Diğer alanlar (DATABASE_URL, REDIS_URL) varsayılan değerleriyle çalışır.
-
-### 3. Docker ile Backend'i Başlat
-
-```bash
-# backend klasöründeyken:
-docker compose up -d db redis backend
-```
-
-İlk çalıştırmada Docker imajları indirilir (~2-3 dakika).
-
-Kontrol et:
-
-```bash
-docker compose ps
-```
-
-3 container da `healthy` / `running` görünmeli.
-
-### 4. API'yi Doğrula
-
-Tarayıcıda aç → **http://localhost:8000/docs**
-
-Swagger sayfası açılıyorsa backend hazır ✅
-
-### 5. Frontend'i Başlat
-
-Yeni bir terminal aç:
+Frontend için:
 
 ```bash
 cd frontend
@@ -108,106 +28,200 @@ npm install
 npm run dev
 ```
 
-Tarayıcıda aç → **http://localhost:5173**
-
 ---
 
-## 📱 İlk Kullanım
+## Admin Hesabı Oluşturma
 
-1. **http://localhost:5173** adresine git
-2. **Kayıt ol** — e-posta ve şifre gir
-3. **E-posta doğrulama** — terminalde token'ı al:
-   ```bash
-   docker compose logs backend | findstr "token"     # Windows
-   docker compose logs backend | grep "token"        # Mac/Linux
-   ```
-   Çıkan URL'yi tarayıcıya yapıştır
-4. **Giriş yap** → Anketi doldur → Profili Hesapla → Dashboard
+Admin paneline erişmek için bir admin hesabı gerekir.  
+**Üç farklı yöntem vardır:**
 
----
+### Yöntem 1 — Script ile (Önerilen)
 
-## 🌐 Servis Adresleri
-
-| Servis | Adres |
-|--------|-------|
-| 🌐 Uygulama | http://localhost:5173 |
-| ⚙️ API | http://localhost:8000 |
-| 📄 Swagger Docs | http://localhost:8000/docs |
-
----
-
-## 📁 Proje Yapısı
-
-```
-FinancialWisdom/
-├── backend/
-│   ├── app/
-│   │   ├── core/          # Config, DB, Redis, Security, Email
-│   │   ├── models/        # User, Portfolio, Assessment
-│   │   ├── routers/       # auth, portfolios, assessments, instruments, admin
-│   │   ├── schemas/       # Pydantic request/response şemaları
-│   │   └── services/      # Portfolio engine, market data, factor scoring
-│   ├── tests/
-│   ├── docker-compose.yml
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── .env.example
-│
-└── frontend/
-    └── src/
-        ├── components/    # Layout, UI bileşenleri
-        ├── context/       # AuthContext (JWT)
-        ├── pages/         # Dashboard, Login, Questionnaire...
-        ├── services/      # API istemcisi
-        └── types/         # TypeScript tipleri
-```
-
----
-
-## 🔧 Sık Kullanılan Komutlar
+Backend klasöründen çalıştırın:
 
 ```bash
-# Backend servislerini başlat
-docker compose up -d db redis backend
+cd backend
 
-# Logları izle
-docker compose logs backend -f
+# Varsayılan: admin@financialwisdom.me
+python create_admin.py
 
-# Servisleri durdur
-docker compose stop
+# Özel e-posta ve isimle:
+python create_admin.py --email sizin@email.com --name "Ad Soyad"
 
-# Tüm container ve verileri sil
-docker compose down -v
+# Mevcut bir kullanıcıyı admin'e yükselt:
+python create_admin.py --promote kullanici@email.com
+```
 
-# Backend servislerini başlat ve Logları izle
-docker compose up -d db redis backend && docker compose logs backend -f
+Script, `DATABASE_URL` ortam değişkenini okur ya da `backend/.env` dosyasından yükler.
 
+### Yöntem 2 — Docker içinden
+
+```bash
+docker exec -it financialwisdom-backend python create_admin.py \
+  --email admin@sirket.com \
+  --name "Admin Ad" \
+  --password gizli_sifre
+```
+
+### Yöntem 3 — PostgreSQL ile doğrudan
+
+```sql
+-- Şifre hash'i için bcrypt gerekir; yöntem 1 veya 2 tercih edin.
+UPDATE users
+SET role = 'admin', is_email_verified = TRUE
+WHERE email = 'kullanici@email.com';
+```
+
+### Admin girişi
+
+Admin hesabı oluşturduktan sonra normal giriş sayfasından (`/login`) giriş yapın.  
+Navbar'da **"Yönetici"** menüsü görünür olur.
+
+---
+
+## Admin Paneli
+
+`/admin` sayfasında üç bölüm bulunur:
+
+### 👥 Kullanıcı Kısıtları
+
+Belirli kullanıcıların portföyüne **varlık sınıfı bazında min/max sınır** koyabilirsiniz.
+
+- Örnek: Yeni kullanıcıya kripto maksimum %5 ile sınırla
+- Örnek: Muhafazakâr profil için nakit minimum %20 zorunlu kıl
+- Her kısıt için **sebep açıklaması** zorunludur (audit kaydı)
+- Kısıtlar portföy algoritmasını değiştirmez; sadece sonucu sınırlandırır
+
+**Teknik detay:** Kısıtlar Algorithm D'nin `GUARDRAILS` sistemine dinamik olarak eklenir.  
+Portföy üretim motoru (`portfolio_engine.py`) ve questionnaire mantığı hiç değişmez.
+
+### ⚙️ Sistem Konfigürasyonu
+
+- Factor scoring ağırlıklarını (momentum, value, quality, volatility) düzenleyin
+- yfinance önbellek TTL süresini ayarlayın
+- Redis ve fallback ayarlarını yönetin
+
+### 🗄️ Önbellek
+
+- Redis önbellek durumunu görüntüleyin
+- Önbelleği manuel olarak temizleyin (piyasa verisi güncellemek için)
+
+---
+
+## Değişiklikler (Bu Güncelleme)
+
+### 1. pandas-ta Teknik Analiz Entegrasyonu
+
+`backend/requirements.txt`'e `pandas-ta==0.3.14b` eklendi.  
+`factor_scoring.py` yeni teknik indikatörlerle güçlendirildi:
+
+| İndikatör | Kullanım | Faktör Etkisi |
+|-----------|---------|---------------|
+| RSI(14)   | Aşırı satım/alım | Momentum +%40 |
+| MACD      | Trend yönü | Momentum +%40 |
+| ATR(14)   | Gerçek aralık | Volatility +%50 |
+| Bollinger Band | Band genişliği + %B | Volatility + Value |
+| ADX(14)   | Trend gücü + yön | Quality +%50 |
+
+**Harmanlama:** Orijinal faktörler korunur, TA skorları ile blend edilir.  
+pandas-ta kurulu değilse sadece orijinal faktörler kullanılır (graceful fallback).
+
+### 2. Koyu Tema Düzeltmeleri
+
+Aşağıdaki sayfalarda eksik `dark:` class'ları tamamlandı:
+- `AdminPage`, `LoginPage`, `VerifyEmailPage`, `NotFoundPage`
+- `ProfileResultPage`, `AssetDetailPage`, `MarketPoolPage`, `QuestionnairePage`
+
+### 3. Sistem Diline/Temasına Göre Otomatik Başlangıç
+
+`ThemeLanguageContext.tsx` güncellendi:
+
+- **İlk ziyarette:** `window.matchMedia('prefers-color-scheme: dark')` ile tema, `navigator.language` ile dil otomatik seçilir
+- **Sonraki ziyaretlerde:** localStorage'daki kullanıcı tercihi önceliklidir
+- **Canlı takip:** OS teması değişince uygulama güncellenir (kullanıcı manuel seçmemişse)
+
+### 4. Admin Override Sistemi
+
+**Yeni dosyalar:**
+- `backend/app/models/admin_override.py` — `AdminOverride` veritabanı modeli
+- `backend/alembic/versions/001_add_admin_overrides.py` — Migration
+- `backend/create_admin.py` — Admin hesabı oluşturma scripti
+
+**Güncellenen dosyalar:**
+- `backend/app/routers/admin.py` — Override CRUD endpoint'leri
+- `backend/app/routers/assessments.py` — Anket submitinde override'ları yükle
+- `backend/app/services/portfolio_engine.py` — `extra_guardrails` parametresi
+- `backend/app/models/user.py` — `admin_overrides` ilişkisi
+- `backend/app/models/__init__.py` — `AdminOverride` import
+- `backend/app/schemas/admin.py` — Override şemaları
+- `frontend/src/pages/AdminPage.tsx` — Tam yeniden yazıldı
+- `frontend/src/services/index.ts` — Override API çağrıları
+- `frontend/src/types/index.ts` — `AdminOverride`, `UserWithOverrides` tipleri
+
+---
+
+## Veritabanı Migrasyonu
+
+Mevcut bir veritabanı varsa migration çalıştırın:
+
+```bash
+cd backend
+alembic upgrade head
+```
+
+Yeni kurulumda `Base.metadata.create_all()` startup'ta otomatik çalışır — migration gerekmez.
+
+---
+
+## API Dokümantasyonu
+
+Sunucu çalışırken: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### Yeni Admin Endpoint'leri
+
+| Yöntem | URL | Açıklama |
+|--------|-----|---------|
+| `GET` | `/api/v1/admin/overrides` | Tüm aktif override'lar |
+| `GET` | `/api/v1/admin/overrides/user/{user_id}` | Kullanıcı override'ları |
+| `POST` | `/api/v1/admin/overrides` | Yeni override oluştur |
+| `PUT` | `/api/v1/admin/overrides/{id}` | Override güncelle |
+| `DELETE` | `/api/v1/admin/overrides/{id}` | Override deaktif et |
+
+---
+
+## Mimari
+
+```
+frontend/          React 18 + TypeScript + Vite + Tailwind
+backend/
+  app/
+    models/        SQLAlchemy ORM (User, RiskAssessment, Portfolio, AdminOverride)
+    routers/       FastAPI router'ları (auth, assessments, portfolios, admin, pool)
+    services/
+      portfolio_engine.py  Algorithm D — questionnaire → ağırlıklar
+      factor_scoring.py    Layer 2 — pandas-ta destekli instrument seçimi
+      market_data.py       yfinance + Redis önbellek
+    schemas/       Pydantic şemaları
+    core/          Config, DB, Redis, Security, Email
+  alembic/         Veritabanı migrasyonları
+  create_admin.py  Admin hesabı oluşturma scripti
 ```
 
 ---
 
-## ❗ Sık Karşılaşılan Sorunlar
+## Teknoloji Yığını
 
-| Sorun | Çözüm |
-|-------|-------|
-| Docker başlamıyor | Docker Desktop'ı aç, yeşil olmasını bekle |
-| `Port already in use` | `docker compose down` sonra tekrar `up` |
-| Doğrulama maili gelmiyor | `EMAILS_ENABLED=false` ise token terminalde görünür |
-| Faktör skorları %50 | Yahoo Finance rate limit — 1-2 dk bekle, tekrar dene |
-| Frontend API'ye bağlanamıyor | `frontend/.env` → `VITE_API_URL=http://localhost:8000/api/v1` olduğunu kontrol et |
-
----
-
-## 👥 Ekip
-
-| İsim | Rol |
-|------|-----|
-| ... | Backend |
-| ... | Frontend |
-| ... | Veritabanı & Analiz |
+| Katman | Teknoloji |
+|--------|-----------|
+| Backend | FastAPI 0.111, Python 3.11 |
+| ORM | SQLAlchemy 2.0 + Alembic |
+| Veritabanı | PostgreSQL 15 |
+| Önbellek | Redis 7 |
+| Piyasa Verisi | yfinance + pandas-ta |
+| Frontend | React 18 + TypeScript + Vite |
+| Stil | Tailwind CSS v3 (dark mode) |
+| Container | Docker Compose |
 
 ---
 
-## 📄 Lisans
-
-Bu proje Şile Işık Üniversitesi mezuniyet projesi kapsamında geliştirilmiştir.
+> ⚠️ Bu uygulama yalnızca eğitim amaçlıdır. Finansal tavsiye niteliği taşımaz.

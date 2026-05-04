@@ -70,7 +70,7 @@ function StatCard({ label, value, sub, accent }: {
   return (
     <div className="card">
       <p className="text-xs text-stone-400 uppercase tracking-widest mb-1">{label}</p>
-      <p className={`text-2xl font-display font-medium ${accent ?? 'text-stone-900'}`}>{value}</p>
+      <p className={`text-2xl font-display font-medium ${accent ?? 'text-stone-900 dark:text-stone-100'}`}>{value}</p>
       {sub && <p className="text-xs text-stone-400 mt-0.5">{sub}</p>}
     </div>
   )
@@ -204,7 +204,7 @@ function DailyChangeHeatmap({ items }: { items: PoolItem[] }) {
               style={{ background: bg }}
               title={`${item.name}: ${item.dailyChange?.toFixed(2) ?? '—'}%`}
             >
-              <div className="text-xs font-mono font-medium text-stone-700">
+              <div className="text-xs font-mono font-medium text-stone-700 dark:text-stone-300">
                 {item.ticker.replace('.IS', '').replace('-USD', '')}
               </div>
               <div className="text-sm font-semibold mt-0.5" style={{ color: textColor }}>
@@ -261,7 +261,7 @@ function PoolTable({
   const SortIcon = ({ k }: { k: SortKey }) =>
     sortKey === k ? <span className="ml-1 opacity-50">{sortDir === 'asc' ? '↑' : '↓'}</span> : null
 
-  const thClass = "text-left pb-3 pr-4 text-xs text-stone-400 uppercase tracking-wider cursor-pointer hover:text-stone-600 transition-colors select-none"
+  const thClass = "text-left pb-3 pr-4 text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider cursor-pointer hover:text-stone-600 dark:hover:text-stone-300 transition-colors select-none"
 
   return (
     <div className="card">
@@ -322,7 +322,7 @@ function PoolTable({
                   onClick={() => onSelectTicker(item.ticker)}
                 >
                   <td className="py-3 pr-4">
-                    <p className="font-medium text-stone-900">{item.ticker}</p>
+                    <p className="font-medium text-stone-900 dark:text-stone-100">{item.ticker}</p>
                     <p className="text-xs text-stone-400 truncate max-w-[140px]">{item.name}</p>
                   </td>
                   <td className="py-3 pr-4 hidden sm:table-cell">
@@ -332,7 +332,7 @@ function PoolTable({
                     {item.exchange}
                   </td>
                   <td className="py-3 pr-4 text-right">
-                    <span className="font-mono text-stone-900 font-medium">
+                    <span className="font-mono text-stone-900 dark:text-stone-100 font-medium">
                       ${item.currentPrice > 0 ? item.currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
                     </span>
                   </td>
@@ -410,7 +410,7 @@ function TickerDrawer({ ticker, period, onClose }: {
         onClick={onClose}
       />
       {/* Drawer */}
-      <div className="relative w-full max-w-md bg-white border-l border-stone-200 shadow-2xl pointer-events-auto flex flex-col animate-[slideIn_0.2s_ease-out]">
+      <div className="relative w-full max-w-md bg-white dark:bg-stone-900 border-l border-stone-200 dark:border-stone-700 shadow-2xl pointer-events-auto flex flex-col animate-[slideIn_0.2s_ease-out]">
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-stone-100">
           <div>
@@ -418,10 +418,10 @@ function TickerDrawer({ ticker, period, onClose }: {
               <AssetClassBadge assetClass={(meta.assetClass as AssetClass) ?? 'SP500_EQUITY'} />
               <span className="text-xs text-stone-400">{meta.exchange}</span>
             </div>
-            <h2 className="text-xl font-display font-bold text-stone-900">{ticker}</h2>
+            <h2 className="text-xl font-display font-bold text-stone-900 dark:text-stone-100">{ticker}</h2>
             <p className="text-sm text-stone-400">{meta.name ?? ticker}</p>
           </div>
-          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 transition-colors text-xl leading-none mt-1">✕</button>
+          <button onClick={onClose} className="text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-200 transition-colors text-xl leading-none mt-1">✕</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
@@ -432,7 +432,7 @@ function TickerDrawer({ ticker, period, onClose }: {
               {/* Price + change */}
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-3xl font-display font-bold text-stone-900">
+                  <p className="text-3xl font-display font-bold text-stone-900 dark:text-stone-100">
                     ${data.currentPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? '—'}
                   </p>
                   <div className="mt-0.5"><ChangeCell value={data.dailyChange} /></div>
@@ -512,7 +512,7 @@ function TickerDrawer({ ticker, period, onClose }: {
                       </div>
                       <div className="flex justify-between text-xs text-stone-400 tabular-nums">
                         <span>Low ${l52.toFixed(2)}</span>
-                        <span className="text-stone-600 font-medium">{pct}th pct</span>
+                        <span className="text-stone-600 dark:text-stone-400 font-medium">{pct}th pct</span>
                         <span>High ${h52.toFixed(2)}</span>
                       </div>
                     </div>
@@ -586,7 +586,7 @@ export default function MarketPoolPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold text-stone-900">Market Data Pool</h1>
+            <h1 className="font-display text-2xl font-bold text-stone-900 dark:text-stone-100">Market Data Pool</h1>
             <p className="text-sm text-stone-400 mt-0.5">
               {data?.count ?? '—'} instruments · USDTRY {data?.usdtryRate?.toFixed(2) ?? '—'} ·{' '}
               {data?.generatedAt ? new Date(data.generatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'}
@@ -601,8 +601,8 @@ export default function MarketPoolPage() {
                 onClick={() => setPeriod(p.value)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   period === p.value
-                    ? 'bg-white text-stone-900 shadow-sm'
-                    : 'text-stone-500 hover:text-stone-700'
+                    ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
+                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
                 }`}
               >
                 {p.label}
@@ -653,7 +653,7 @@ export default function MarketPoolPage() {
               className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                 filterClass === 'ALL'
                   ? 'bg-stone-900 text-white border-stone-900'
-                  : 'bg-white text-stone-500 border-stone-200 hover:border-stone-300'
+                  : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-500'
               }`}
             >
               All

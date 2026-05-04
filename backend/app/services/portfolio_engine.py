@@ -219,15 +219,19 @@ _MIN_WEIGHT_THRESHOLD = 5.0
 
 def compute_weights_from_answers(
     answers: list[dict],   # [{"questionId": int, "selectedOption": int}, ...]
+    extra_guardrails: list[dict] | None = None,
 ) -> dict[str, float]:
     """
     Questionnaire cevaplarından doğrudan portföy ağırlıkları üretir.
 
     1. Her boyut için ağırlıklı ortalama ham skor hesapla (0-100)
-    2. Güvenlik şeritlerini uygula (min/max clamp)
+    2. Güvenlik şeritlerini uygula (min/max clamp) — questionnaire + admin override
     3. Toplam 100'e normalize et
     4. %5 altındaki ağırlıkları sıfırla, yeniden normalize et
     5. Yuvarlama hatalarını düzelt
+
+    extra_guardrails: Admin override'larından gelen ek kısıtlar.
+    Format: [{"dim": str, "action": "min"|"max", "val": float, "reason": str}]
     """
     answer_map: dict[int, int] = {a["questionId"]: a["selectedOption"] for a in answers}
 
@@ -248,7 +252,7 @@ def compute_weights_from_answers(
 
     logger.debug("Raw dimension scores: %s", raw)
 
-    # 2. Güvenlik şeritleri
+    # 2. Güvenlik şeritleri (questionnaire tabanlı)
     applied_guardrails: list[str] = []
     guardrail_mins: dict[str, float] = {}
     guardrail_maxs: dict[str, float] = {}
@@ -263,6 +267,27 @@ def compute_weights_from_answers(
                 prev = guardrail_mins.get(dim, 0.0)
                 guardrail_mins[dim] = max(prev, g["val"])
             applied_guardrails.append(g["reason"])
+
+    # Admin override guardrail'leri — questionnaire guardrail'lerin üzerine eklenir
+    # Admin kısıtları daha kısıtlayıcıysa kazanır (en dar bant geçerli)
+    if extra_guardrails:
+        for g in extra_guardrails:
+            dim = g.get("dim", "")
+            if dim not in DIMENSION_MAP:
+                continue
+            action = g.get("action")
+            val    = g.get("val")
+            reason = g.get("reason", "Admin override")
+            if val is None:
+                continue
+            if action == "max":
+                prev = guardrail_maxs.get(dim, float("inf"))
+                guardrail_maxs[dim] = min(prev, val)
+            elif action == "min":
+                prev = guardrail_mins.get(dim, 0.0)
+                guardrail_mins[dim] = max(prev, val)
+            applied_guardrails.append(reason)
+            logger.info("Admin guardrail uygulandı: %s %s=%s — %s", dim, action, val, reason)
 
     if applied_guardrails:
         logger.info("Guardrails applied: %s", applied_guardrails)
@@ -493,21 +518,28 @@ def build_portfolio(
     answers: list[dict] | None = None,
     factor_weights: dict | None = None,
     max_instruments: int | None = None,
+    admin_guardrails: list[dict] | None = None,
 ) -> dict:
     """
     Algoritma D: Questionnaire cevaplarından doğrudan portföy üret.
 
     answers parametresi verilirse Algoritma D (dinamik) kullanılır.
     Verilmezse eski lookup tablosu fallback olarak devreye girer.
+
+    admin_guardrails: Admin tarafından eklenen ek guardrail'ler.
+    Format: [{"dim": "CRYPTOCURRENCY", "action": "max", "val": 5, "reason": "..."}]
+    Bu guardrail'ler GUARDRAILS listesine eklenir, algoritma değişmez.
     """
     max_inst = max_instruments or settings.MAX_INSTRUMENTS_PER_CLASS
 
     if answers:
         logger.info(
-            "Building portfolio (Algorithm D): profile=%s horizon=%s answers=%d",
-            profile, horizon, len(answers)
+            "Building portfolio (Algorithm D): profile=%s horizon=%s answers=%d admin_guardrails=%d",
+            profile, horizon, len(answers), len(admin_guardrails or [])
         )
-        weights_float = compute_weights_from_answers(answers)
+        weights_float = compute_weights_from_answers(
+            answers, extra_guardrails=admin_guardrails
+        )
     else:
         # Fallback: eski lookup tablosu (geriye dönük uyumluluk)
         logger.warning("No answers provided — using legacy lookup table fallback")

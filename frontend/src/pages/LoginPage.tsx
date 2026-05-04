@@ -33,7 +33,7 @@ export default function LoginPage() {
     <AuthLayout>
       <div className="w-full max-w-md animate-slide-up">
         <div className="text-center mb-8">
-          <h1 className="font-display text-3xl font-bold text-stone-900 mb-2">Welcome back</h1>
+          <h1 className="font-display text-3xl font-bold text-stone-900 dark:text-stone-100 mb-2">Welcome back</h1>
           <p className="text-stone-500 text-sm">Sign in to your account</p>
         </div>
         {error && <div className="mb-4"><Alert variant="error">{error}</Alert></div>}
@@ -68,7 +68,7 @@ export default function LoginPage() {
             <div className="w-full border-t border-stone-200" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="px-3 bg-white text-stone-400">no account yet?</span>
+            <span className="px-3 bg-white dark:bg-stone-950 text-stone-400 dark:text-stone-500">no account yet?</span>
           </div>
         </div>
         <Button variant="secondary" className="w-full mt-4" onClick={() => navigate('/register')}>

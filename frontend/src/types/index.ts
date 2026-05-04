@@ -192,6 +192,42 @@ export interface SystemConfig {
   useFallbackOnApiFailure: boolean
 }
 
+// ─── Admin Overrides ─────────────────────────────────────────────────────────
+
+export interface AdminOverride {
+  id: string
+  user_id: string
+  user_email?: string
+  user_full_name?: string
+  asset_class: AssetClass
+  min_weight: number | null
+  max_weight: number | null
+  reason: string
+  created_by_admin_email?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminOverrideCreate {
+  user_id: string
+  asset_class: AssetClass
+  min_weight: number | null
+  max_weight: number | null
+  reason: string
+}
+
+export interface UserWithOverrides {
+  userId: string
+  email: string
+  fullName: string
+  role: 'investor' | 'admin'
+  isActive: boolean
+  createdAt: string
+  overrideCount: number
+  activeOverrides: AdminOverride[]
+}
+
 // ─── API Response wrapper ─────────────────────────────────────────────────────
 
 export interface ApiResponse<T> {

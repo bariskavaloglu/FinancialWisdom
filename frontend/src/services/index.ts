@@ -144,6 +144,32 @@ export const adminService = {
   flushCache: async () => {
     await api.delete('/admin/cache')
   },
+
+  // Override endpoints
+  listOverrides: async () => {
+    const { data } = await api.get('/admin/overrides')
+    return data
+  },
+
+  listUserOverrides: async (userId: string) => {
+    const { data } = await api.get(`/admin/overrides/user/${userId}`)
+    return data
+  },
+
+  createOverride: async (payload: {
+    user_id: string
+    asset_class: string
+    min_weight: number | null
+    max_weight: number | null
+    reason: string
+  }) => {
+    const { data } = await api.post('/admin/overrides', payload)
+    return data
+  },
+
+  deleteOverride: async (overrideId: string) => {
+    await api.delete(`/admin/overrides/${overrideId}`)
+  },
 }
 
 // ─── Auth service — artık AuthContext tarafından yönetiliyor ─────────────────

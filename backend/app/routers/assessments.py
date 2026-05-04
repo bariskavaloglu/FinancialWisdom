@@ -25,6 +25,7 @@ from app.services.assessment_service import (
     compute_composite_score,
 )
 from app.services.portfolio_engine import build_portfolio
+from app.models.admin_override import AdminOverride
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/assessments", tags=["assessments"])
@@ -71,8 +72,45 @@ def submit_assessment(
     # Cevapları Algorithm D'ye ilet — dinamik ağırlıklandırma için
     raw_answers = [a.model_dump() for a in body.answers]
 
+    # Admin override'larını yükle ve guardrail olarak ilet
+    active_overrides = (
+        db.query(AdminOverride)
+        .filter(
+            AdminOverride.user_id == current_user.id,
+            AdminOverride.is_active == True,
+        )
+        .all()
+    )
+    admin_guardrails = [
+        {
+            "dim": ov.asset_class,
+            "action": "min",
+            "val": ov.min_weight,
+            "reason": f"Admin override: {ov.reason}",
+        }
+        for ov in active_overrides if ov.min_weight is not None
+    ] + [
+        {
+            "dim": ov.asset_class,
+            "action": "max",
+            "val": ov.max_weight,
+            "reason": f"Admin override: {ov.reason}",
+        }
+        for ov in active_overrides if ov.max_weight is not None
+    ]
+
+    if admin_guardrails:
+        logger.info(
+            "Admin guardrails applied for user=%s: %d rules",
+            current_user.id, len(admin_guardrails)
+        )
+
     try:
-        engine_result = build_portfolio(profile_type, horizon_type, answers=raw_answers)
+        engine_result = build_portfolio(
+            profile_type, horizon_type,
+            answers=raw_answers,
+            admin_guardrails=admin_guardrails or None,
+        )
     except Exception as exc:
         logger.error("Portfolio engine error: %s", exc, exc_info=True)
         db.rollback()

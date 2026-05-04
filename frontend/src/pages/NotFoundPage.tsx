@@ -7,8 +7,8 @@ export default function NotFoundPage() {
   return (
     <AppLayout>
       <div className="flex flex-col items-center justify-center py-32 text-center">
-        <p className="font-mono text-6xl font-bold text-stone-900/30 mb-4">404</p>
-        <h1 className="font-display text-2xl text-stone-900 mb-2">Page not found</h1>
+        <p className="font-mono text-6xl font-bold text-stone-900/30 dark:text-stone-100/20 mb-4">404</p>
+        <h1 className="font-display text-2xl text-stone-900 dark:text-stone-100 mb-2">Page not found</h1>
         <p className="text-stone-500 text-sm mb-8">Aradığınız sayfa mevcut değil.</p>
         <Button onClick={() => navigate('/')}>Ana Sayfaya Dön</Button>
       </div>
