@@ -77,9 +77,12 @@ def list_users(db: Session = Depends(get_db), admin: User = Depends(require_admi
     users = db.query(User).order_by(User.created_at.desc()).all()
     result = []
     for u in users:
-        active_overrides = [
-            ov for ov in u.admin_overrides if ov.is_active
-        ]
+        try:
+            active_overrides = [
+                ov for ov in (u.admin_overrides or []) if ov.is_active
+            ]
+        except Exception:
+            active_overrides = []
         override_responses = [
             AdminOverrideResponse(
                 id=ov.id,
@@ -105,7 +108,7 @@ def list_users(db: Session = Depends(get_db), admin: User = Depends(require_admi
             isActive=u.is_active,
             createdAt=u.created_at.isoformat(),
             overrideCount=len(active_overrides),
-            activeOverrides=override_responses,
+            activeOverrides=override_responses or [],
         ))
     return result
 

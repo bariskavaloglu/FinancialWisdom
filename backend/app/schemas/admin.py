@@ -98,3 +98,5 @@ class UserWithOverrides(BaseModel):
     createdAt: str
     overrideCount: int = 0
     activeOverrides: list[AdminOverrideResponse] = []
+
+    model_config = {"populate_by_name": True}

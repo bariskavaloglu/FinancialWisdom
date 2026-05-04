@@ -166,7 +166,7 @@ function OverridesTab() {
   // Tüm aktif override'lar
   const allOverrides: (AdminOverride & { userEmail: string; userName: string })[] =
     (users ?? []).flatMap(u =>
-      u.activeOverrides.map(ov => ({
+      (u.activeOverrides ?? []).map(ov => ({
         ...ov,
         userEmail: u.email,
         userName: u.fullName,
@@ -204,7 +204,7 @@ function OverridesTab() {
                 </div>
                 <button
                   onClick={() => {
-                    if (confirm('Bu kısıtı kaldırmak istediğinizden emin misiniz?')) {
+                    if (window.confirm('Bu kısıtı kaldırmak istediğinizden emin misiniz?')) {
                       deleteOverride(ov.id)
                     }
                   }}

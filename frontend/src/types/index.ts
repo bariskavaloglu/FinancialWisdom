@@ -224,8 +224,8 @@ export interface UserWithOverrides {
   role: 'investor' | 'admin'
   isActive: boolean
   createdAt: string
-  overrideCount: number
-  activeOverrides: AdminOverride[]
+  overrideCount?: number
+  activeOverrides?: AdminOverride[]
 }
 
 // ─── API Response wrapper ─────────────────────────────────────────────────────
