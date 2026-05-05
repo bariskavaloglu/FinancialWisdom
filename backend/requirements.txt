@@ -9,11 +9,7 @@ pydantic-settings==2.2.1
 pydantic[email]==2.7.1
 redis==5.0.4
 yfinance>=1.3.0
-<<<<<<< HEAD
-pandas>=2.3.2
-=======
 pandas==2.2.2
->>>>>>> f061dae56f0cda3dd3e17c47acb42d89634cba42
 pandas-ta>=0.4.67b0
 httpx==0.27.0
 python-multipart==0.0.9
