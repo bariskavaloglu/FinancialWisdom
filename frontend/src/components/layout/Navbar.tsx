@@ -63,6 +63,7 @@ export function Navbar() {
                 <NavLink to="/pool"          className={navLinkClass}>{t('nav.marketPool')}</NavLink>
                 <NavLink to="/questionnaire" className={navLinkClass}>{t('nav.questionnaire')}</NavLink>
                 <NavLink to="/compare"       className={navLinkClass}>{t('nav.compare')}</NavLink>
+                <NavLink to="/backtest"      className={navLinkClass}>{t('nav.backtest')}</NavLink>
                 {user?.role === 'admin' && (
                   <NavLink to="/admin" className={navLinkClass}>{t('nav.admin')}</NavLink>
                 )}
