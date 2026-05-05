@@ -20,10 +20,43 @@ export default function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [resent, setResent] = useState(false)
 
+  const DISPOSABLE_DOMAINS = [
+    'mailinator.com', 'guerrillamail.com', 'guerrillamail.net', 'guerrillamail.org',
+    'guerrillamail.biz', 'guerrillamail.de', 'guerrillamail.info',
+    'tempmail.com', 'temp-mail.org', 'throwam.com', 'throwam.org',
+    'yopmail.com', 'yopmail.fr', 'yopmail.net',
+    'sharklasers.com', 'guerrillamailblock.com', 'spam4.me',
+    'trashmail.com', 'trashmail.at', 'trashmail.io', 'trashmail.me',
+    'trashmail.net', 'trashmail.org', 'trashmail.xyz',
+    'dispostable.com', 'fakeinbox.com', 'mailnull.com',
+    'maildrop.cc', 'spamgourmet.com', 'spamgourmet.net',
+    'mailnesia.com', 'mailnull.com', 'spamfree24.org',
+    'getairmail.com', 'filzmail.com', 'throwam.com',
+    'discard.email', 'spamgourmet.org', '10minutemail.com',
+    '10minutemail.net', 'tempr.email', 'getnada.com',
+    'mohmal.com', 'anonaddy.com', 'spamex.com',
+  ]
+
+  const isValidEmailFormat = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+    return re.test(email)
+  }
+
+  const isDisposableEmail = (email: string) => {
+    const domain = email.split('@')[1]?.toLowerCase()
+    return domain ? DISPOSABLE_DOMAINS.includes(domain) : false
+  }
+
   const validate = () => {
     const e: Record<string, string> = {}
     if (!form.fullName.trim()) e.fullName = 'Full name is required.'
-    if (!form.email) e.email = 'Email address is required.'
+    if (!form.email) {
+      e.email = 'Email address is required.'
+    } else if (!isValidEmailFormat(form.email)) {
+      e.email = 'Please enter a valid email address.'
+    } else if (isDisposableEmail(form.email)) {
+      e.email = 'Temporary or disposable email addresses are not allowed.'
+    }
     if (!form.password || form.password.length < 8) e.password = 'Password must be at least 8 characters.'
     if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match.'
     if (!form.acceptTerms) e.acceptTerms = 'You must accept the terms to continue.'
@@ -63,7 +96,7 @@ export default function RegisterPage() {
               </h2>
               <p className="text-stone-500 text-sm leading-relaxed">
                 We sent a verification link to{' '}
-                <strong className="text-stone-700">{pendingEmail}</strong>.
+                <strong className="text-stone-700">{pendingEmail}</strong>
               </p>
             </div>
 
