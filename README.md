@@ -5,7 +5,7 @@ Kişiselleştirilmiş portföy öneri sistemi — FastAPI + React + PostgreSQL +
 ---
 
 ## Hızlı Başlangıç
-
+Alp
 ### 1. Ortam değişkenleri
 
 ```bash
