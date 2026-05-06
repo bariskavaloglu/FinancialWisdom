@@ -18,7 +18,6 @@ const NotFoundPage      = lazy(() => import('@/pages/NotFoundPage'))
 const VerifyEmailPage   = lazy(() => import('@/pages/VerifyEmailPage'))
 const MarketPoolPage    = lazy(() => import('@/pages/MarketPoolPage'))
 const ProfilePage       = lazy(() => import('@/pages/ProfilePage'))
-const BacktestPage      = lazy(() => import('@/pages/BacktestPage'))
 
 // ─── Guards ───────────────────────────────────────────────────────────────────
 
@@ -86,7 +85,6 @@ export default function App() {
               <Route path="/compare"            element={<ComparePage />} />
               <Route path="/pool"               element={<MarketPoolPage />} />
               <Route path="/profile"            element={<ProfilePage />} />
-              <Route path="/backtest"           element={<BacktestPage />} />
             </Route>
 
             {/* Admin only */}

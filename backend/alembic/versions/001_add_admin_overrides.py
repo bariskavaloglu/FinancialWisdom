@@ -16,39 +16,27 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Tablo zaten varsa (SQLAlchemy auto-create ile oluşturulduysa) atla
-    conn = op.get_bind()
-    inspector = sa.inspect(conn)
-    if 'admin_overrides' not in inspector.get_table_names():
-        op.create_table(
-            'admin_overrides',
-            sa.Column('id', UUID(as_uuid=True), primary_key=True),
-            sa.Column('user_id', UUID(as_uuid=True),
-                      sa.ForeignKey('users.id', ondelete='CASCADE'),
-                      nullable=False, index=True),
-            sa.Column('asset_class', sa.String(50), nullable=False),
-            sa.Column('min_weight', sa.Float, nullable=True),
-            sa.Column('max_weight', sa.Float, nullable=True),
-            sa.Column('reason', sa.Text, nullable=False),
-            sa.Column('created_by_admin_id', UUID(as_uuid=True),
-                      sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=True),
-            sa.Column('created_by_admin_email', sa.String(255), nullable=True),
-            sa.Column('is_active', sa.Boolean, nullable=False, default=True),
-            sa.Column('created_at', sa.DateTime(timezone=True),
-                      server_default=sa.func.now(), nullable=False),
-            sa.Column('updated_at', sa.DateTime(timezone=True),
-                      server_default=sa.func.now(), onupdate=sa.func.now(), nullable=False),
-        )
-
-    # İndeksler zaten varsa IF NOT EXISTS ile güvenli ekle
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_admin_overrides_user_id "
-        "ON admin_overrides (user_id)"
+    op.create_table(
+        'admin_overrides',
+        sa.Column('id', UUID(as_uuid=True), primary_key=True),
+        sa.Column('user_id', UUID(as_uuid=True),
+                  sa.ForeignKey('users.id', ondelete='CASCADE'),
+                  nullable=False, index=True),
+        sa.Column('asset_class', sa.String(50), nullable=False),
+        sa.Column('min_weight', sa.Float, nullable=True),
+        sa.Column('max_weight', sa.Float, nullable=True),
+        sa.Column('reason', sa.Text, nullable=False),
+        sa.Column('created_by_admin_id', UUID(as_uuid=True),
+                  sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=True),
+        sa.Column('created_by_admin_email', sa.String(255), nullable=True),
+        sa.Column('is_active', sa.Boolean, nullable=False, default=True),
+        sa.Column('created_at', sa.DateTime(timezone=True),
+                  server_default=sa.func.now(), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True),
+                  server_default=sa.func.now(), onupdate=sa.func.now(), nullable=False),
     )
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_admin_overrides_is_active "
-        "ON admin_overrides (is_active)"
-    )
+    op.create_index('ix_admin_overrides_user_id', 'admin_overrides', ['user_id'])
+    op.create_index('ix_admin_overrides_is_active', 'admin_overrides', ['is_active'])
 
 
 def downgrade() -> None:

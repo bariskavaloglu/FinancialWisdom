@@ -16,7 +16,7 @@ def send_verification_email(to_email: str, full_name: str, token: str) -> None:
 
     if not settings.EMAILS_ENABLED:
         logger.info(
-            "[DEV MODE] Verification URL:\n  %s",
+            "🔗 [DEV MODE] Verification URL:\n  %s",
             verify_url,
         )
         return
@@ -76,7 +76,9 @@ def send_verification_email(to_email: str, full_name: str, token: str) -> None:
             "subject": "Financial Wisdom - Verify Your Email Address",
             "html": html_body,
         }
-        email = resend.Emails.send(params)
+        import resend as resend_module
+        resend_module.api_key = os.environ.get("RESEND_API_KEY", "")
+        email = resend_module.Emails.send(params)
         logger.info("Verification email sent: %s (id=%s)", to_email, email.get("id"))
     except Exception as exc:
         logger.error("Resend error (%s): %s", to_email, exc)
