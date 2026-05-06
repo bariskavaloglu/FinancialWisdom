@@ -26,7 +26,7 @@ export function Label({ children, required, ...props }: LabelProps) {
   return (
     <label className="label" {...props}>
       {children}
-      {required && <span className="text-stone-900 ml-0.5">*</span>}
+      {required && <span className="text-stone-900 dark:text-stone-100 ml-0.5">*</span>}
     </label>
   )
 }

@@ -65,10 +65,10 @@ export default function LoginPage() {
         </form>
         <div className="relative mt-4">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-stone-200" />
+            <div className="w-full border-t border-stone-200 dark:border-stone-700" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="px-3 bg-white dark:bg-stone-950 text-stone-400 dark:text-stone-500">no account yet?</span>
+            <span className="px-3 bg-stone-100 dark:bg-stone-950 text-stone-400 dark:text-stone-500">no account yet?</span>
           </div>
         </div>
         <Button variant="secondary" className="w-full mt-4" onClick={() => navigate('/register')}>
