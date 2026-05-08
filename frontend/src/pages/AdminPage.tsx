@@ -436,8 +436,8 @@ function ConfigTab() {
           </div>
           {(['momentum', 'value', 'quality', 'lowVolatility'] as const).map((key) => {
             const labels = {
-              momentum: 'Momentum', value: 'Value',
-              quality: 'Quality', lowVolatility: 'Low Volatility',
+              momentum: t('admin.momentum'), value: t('admin.value'),
+              quality: t('admin.quality'), lowVolatility: t('admin.lowVolatility'),
             }
             return (
               <div key={key} className="space-y-1.5">
@@ -466,7 +466,7 @@ function ConfigTab() {
           {([
             { label: 'yfinance Önbellek TTL (dakika)', key: 'yfinanceCacheTtlMinutes' as const, min: 1, max: 60 },
             { label: 'Min. Veri Tamlığı', key: 'minDataCompleteness' as const, min: 0, max: 1 },
-            { label: 'Max Instruments Per Class', key: 'maxInstrumentsPerClass' as const, min: 1, max: 20 },
+            { label: t('admin.maxInstruments'), key: 'maxInstrumentsPerClass' as const, min: 1, max: 20 },
           ]).map(({ label, key, min, max }) => (
             <div key={key} className="space-y-1.5">
               <label className="label">{label}</label>

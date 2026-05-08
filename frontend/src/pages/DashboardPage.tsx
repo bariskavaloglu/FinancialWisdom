@@ -161,7 +161,7 @@ function PortfolioDropdown({
                           disabled={deletingId === a.portfolioId}
                           className="text-[10px] px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
                         >
-                          {deletingId === a.portfolioId ? '…' : 'Yes'}
+                          {deletingId === a.portfolioId ? '…' : t('common.yes')}
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); onDeleteConfirm(null) }}
@@ -174,7 +174,7 @@ function PortfolioDropdown({
                       <button
                         onClick={(e) => { e.stopPropagation(); onDeleteConfirm(a.portfolioId) }}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-300 dark:text-stone-600 hover:text-red-500 dark:hover:text-red-400 transition-colors text-base"
-                        title="Delete portfolio"
+                        title={t('dash.deletePortfolio')}
                       >
                         🗑
                       </button>
@@ -227,10 +227,10 @@ function ProfileBanner({ assessment, portfolio }: { assessment: AssessmentListIt
       return vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) : 50
     }
     return [
-      { factor: 'Momentum', value: avg('momentum') },
-      { factor: 'Value',    value: avg('value') },
-      { factor: 'Quality',  value: avg('quality') },
-      { factor: 'Low Vol',  value: avg('volatility') },
+      { factor: t('dash.momentum'), value: avg('momentum') },
+      { factor: t('dash.value'),    value: avg('value') },
+      { factor: t('dash.quality'),  value: avg('quality') },
+      { factor: t('dash.lowVol'),  value: avg('volatility') },
     ]
   })()
 
@@ -541,7 +541,7 @@ function FactorScoreChart({ portfolio }: { portfolio: Portfolio }) {
           <YAxis domain={[0, 100]} tick={{ fill: theme === "dark" ? "#a8a29e" : "#78716c", fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
             contentStyle={tooltipStyle}
-            formatter={(v: number) => [v, 'Composite Score']}
+            formatter={(v: number) => [v, t('dash.compositeScore')]}
           />
           <Bar dataKey="score" fill={barColor} radius={[4, 4, 0, 0]} />
         </BarChart>

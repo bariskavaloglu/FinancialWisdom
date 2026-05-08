@@ -167,7 +167,7 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
             contentStyle={tipStyle}
             formatter={(v: number, name: string) => [v.toFixed(1), name.charAt(0).toLocaleUpperCase('en-US') + name.slice(1)]}
           />
-          <Bar dataKey="score" radius={[4, 4, 0, 0]} name="Composite">
+          <Bar dataKey="score" radius={[4, 4, 0, 0]} {name={t("pool.compositeName")}>
             {data.map((d, i) => {
               const cfg = ASSET_CONFIG[d.assetClass]
               return <Cell key={i} fill={isDark ? cfg.darkColor : cfg.color} />
@@ -283,7 +283,7 @@ function PoolTable({
     <div className="card">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest">
-          All Instruments ({items.length})
+          {t('pool.allInstruments')} ({items.length})
         </h3>
         <button
           className="text-xs text-amber-700 hover:underline"
@@ -306,7 +306,7 @@ function PoolTable({
           <thead>
             <tr className="border-b border-stone-200 dark:border-stone-700">
               <th className={thClass} onClick={() => handleSort('ticker')}>Ticker <SortIcon k="ticker" /></th>
-              <th className={`${thClass} hidden sm:table-cell`}>Class</th>
+              <th className={`${thClass} hidden sm:table-cell`}>{t('chart.class')}</th>
               <th className={`${thClass} hidden md:table-cell`}>Exchange</th>
               <th className={`${thClass} text-right`} onClick={() => handleSort('currentPrice')}>
                 Price <SortIcon k="currentPrice" />
@@ -316,10 +316,10 @@ function PoolTable({
               </th>
               <th className={`${thClass} hidden lg:table-cell`}>52W Range</th>
               <th className={`${thClass} hidden xl:table-cell`} onClick={() => handleSort('dataPoints')}>
-                Data <SortIcon k="dataPoints" />
+                {t('pool.data')} <SortIcon k="dataPoints" />
               </th>
               <th className={`${thClass} hidden lg:table-cell`} onClick={() => handleSort('composite')}>
-                Factor <SortIcon k="composite" />
+                {t('pool.factor')} <SortIcon k="composite" />
               </th>
               <th className={thClass}></th>
             </tr>
@@ -456,7 +456,7 @@ function TickerDrawer({ ticker, period, onClose }: {
                   <div className="mt-0.5"><ChangeCell value={data.dailyChange} /></div>
                 </div>
                 <div className="text-right text-xs text-stone-400">
-                  <p>{data.history?.length ?? 0} data points</p>
+                  <p>{data.history?.length ?? 0} {t('pool.dataPoints')}</p>
                   <p>Last: {data.history?.at(-1)?.date ?? '—'}</p>
                 </div>
               </div>
@@ -464,7 +464,7 @@ function TickerDrawer({ ticker, period, onClose }: {
               {/* Mini chart */}
               {chartData.length > 0 && (
                 <div>
-                  <p className="text-xs text-stone-400 uppercase tracking-widest mb-2">Price (last 90d)</p>
+                  <p className="text-xs text-stone-400 uppercase tracking-widest mb-2">>{t('pool.priceLast90')}</p>
                   <ResponsiveContainer width="100%" height={130}>
                     <AreaChart data={chartData} margin={{ left: -20 }}>
                       <defs>
@@ -489,7 +489,7 @@ function TickerDrawer({ ticker, period, onClose }: {
               {/* Factor scores */}
               {data.factorScore && (
                 <div>
-                  <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">Factor Scores</p>
+                  <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">>{t('pool.factorScores')}</p>
                   <div className="space-y-2.5">
                     {(['momentum', 'volatility', 'composite'] as const).map(key => (
                       <div key={key} className="flex items-center justify-between gap-3">
@@ -523,7 +523,7 @@ function TickerDrawer({ ticker, period, onClose }: {
                 const pct    = h52 !== l52 ? Math.round(((data.currentPrice - l52) / (h52 - l52)) * 100) : 0
                 return (
                   <div>
-                    <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">52-Week Range</p>
+                    <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">>{t('pool.range52wTitle')}</p>
                     <div className="space-y-1.5">
                       <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
                         <div className="h-full bg-stone-900 rounded-full" style={{ width: `${pct}%` }} />
@@ -539,7 +539,7 @@ function TickerDrawer({ ticker, period, onClose }: {
               })()}
             </>
           ) : (
-            <p className="text-stone-400 text-sm text-center py-8">No data available</p>
+            <p className="text-stone-400 text-sm text-center py-8">>{t('pool.noData')}</p>
           )}
         </div>
 
@@ -548,7 +548,7 @@ function TickerDrawer({ ticker, period, onClose }: {
             href={`/instrument/${encodeURIComponent(ticker)}`}
             className="btn-secondary w-full text-sm justify-center"
           >
-            Full Detail Page →
+            {t('pool.fullDetail')}
           </a>
         </div>
       </div>
@@ -632,22 +632,22 @@ export default function MarketPoolPage() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Instruments" value={String(data?.count ?? '—')} sub={`${period.toLocaleUpperCase('en-US')} period`} />
+          <StatCard label={t('pool.totalInstruments')} value={String(data?.count ?? '—')} sub={`${period.toLocaleUpperCase('en-US')} ${t('common.period')}`} />
           <StatCard
-            label="Gainers / Losers"
+            label={t('pool.gainersLosers')}
             value={`${gainers} / ${losers}`}
-            sub="Daily change"
+            sub={t('pool.dailyChange')}
             accent={gainers > losers ? 'text-green-600' : 'text-red-500'}
           />
           <StatCard
-            label="Avg Factor Score"
+            label={t('pool.avgFactorScore')}
             value={avgScore !== null ? String(avgScore) : '—'}
-            sub="Composite (0–100)"
+            sub={t('pool.composite')}
           />
           <StatCard
-            label="Total Data Points"
+            label={t('pool.totalDataPoints')}
             value={totalPoints > 1000 ? `${(totalPoints / 1000).toFixed(1)}k` : String(totalPoints)}
-            sub="Cached OHLCV rows"
+            sub={t('pool.cachedRows')}
           />
         </div>
 
@@ -703,14 +703,14 @@ export default function MarketPoolPage() {
           <div className="flex items-center justify-center py-16">
             <div className="flex flex-col items-center gap-3">
               <Spinner size="lg" />
-              <p className="text-stone-400 text-sm">Fetching market pool…</p>
+              <p className="text-stone-400 text-sm">{t('pool.fetching')}</p>
             </div>
           </div>
         )}
 
         {!isLoading && error && (
           <div className="card text-center py-10">
-            <p className="text-stone-400">Could not load market data. Check backend connection.</p>
+            <p className="text-stone-400">{t('pool.error')}</p>
           </div>
         )}
 
@@ -730,7 +730,7 @@ export default function MarketPoolPage() {
             />
 
             <p className="text-xs text-stone-300 text-center">
-              Data via Yahoo Finance · 15 min Redis cache · Prices in USD
+              {t('pool.footer')}
             </p>
           </>
         )}

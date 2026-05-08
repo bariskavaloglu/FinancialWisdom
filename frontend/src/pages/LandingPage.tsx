@@ -1,76 +1,72 @@
 import { useNavigate } from 'react-router-dom'
 import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/Button'
-
-const FEATURES = [
-  { icon: '📊', title: 'Risk Questionnaire', desc: '15 questions assess your risk tolerance and investment horizon independently.' },
-  { icon: '🔍', title: 'Factor-Based Selection', desc: 'Instruments ranked by momentum, value, quality & volatility factors.' },
-  { icon: '💡', title: 'Explainable Decisions', desc: 'Every allocation comes with a plain-language reason. No black boxes.' },
-]
+import { useThemeLang } from '@/context/ThemeLanguageContext'
 
 export default function LandingPage() {
   const navigate = useNavigate()
+  const { t } = useThemeLang()
+
+  const FEATURES = [
+    { icon: '📊', titleKey: 'landing.feat1Title', descKey: 'landing.feat1Desc' },
+    { icon: '🔍', titleKey: 'landing.feat2Title', descKey: 'landing.feat2Desc' },
+    { icon: '💡', titleKey: 'landing.feat3Title', descKey: 'landing.feat3Desc' },
+  ]
+
   return (
     <div className="min-h-screen flex flex-col bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
       <Navbar />
-
-      {/* Hero */}
       <section className="flex-1 flex flex-col justify-center px-6 py-20 max-w-4xl mx-auto w-full">
         <div className="animate-slide-up space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-sm font-medium">
-            <span>✦</span> Personalized Investment Intelligence
+            <span>✦</span> {t('landing.badge')}
           </div>
           <h1 className="font-display text-5xl sm:text-6xl font-bold text-stone-900 dark:text-stone-100 leading-tight">
-            Build a Portfolio That<br />
-            Matches Your Risk Profile
+            {t('landing.hero1')}<br />{t('landing.hero2')}
           </h1>
           <p className="text-lg text-stone-500 dark:text-stone-400 max-w-xl leading-relaxed">
-            Answer 15 questions. Get a personalized, explainable portfolio recommendation
-            across stocks, crypto, commodities & more. No black boxes.
+            {t('landing.heroDesc')}
           </p>
           <div className="flex flex-wrap gap-4 pt-2">
-            <Button size="lg" onClick={() => navigate('/register')}>Get Started Free →</Button>
+            <Button size="lg" onClick={() => navigate('/register')}>{t('landing.getStarted')}</Button>
             <Button size="lg" variant="secondary" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
-              See How It Works
+              {t('landing.howItWorks')}
             </Button>
           </div>
           <div className="flex items-center gap-6 text-sm text-stone-400 dark:text-stone-500 pt-1">
-            <span>✓ Free</span>
-            <span>✓ No trading required</span>
-            <span>✓ Explainable recommendations</span>
+            <span>{t('landing.free')}</span>
+            <span>{t('landing.noTrading')}</span>
+            <span>{t('landing.explainable')}</span>
           </div>
         </div>
       </section>
 
-      {/* Features */}
       <section id="how-it-works" className="px-6 pb-16 max-w-4xl mx-auto w-full">
         <div className="grid md:grid-cols-3 gap-5">
           {FEATURES.map((f, i) => (
             <div key={i} className="card-hover">
               <div className="text-3xl mb-4">{f.icon}</div>
-              <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-2">{f.title}</h3>
-              <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">{f.desc}</p>
+              <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-2">{t(f.titleKey)}</h3>
+              <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">{t(f.descKey)}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* CTA bar */}
       <section className="mb-10 max-w-4xl mx-auto w-full px-6">
         <div className="card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <p className="font-semibold text-stone-900 dark:text-stone-100">Ready to build your personalized portfolio?</p>
-            <p className="text-sm text-stone-400 dark:text-stone-500 mt-0.5">Takes less than 5 minutes. No account required to explore.</p>
+            <p className="font-semibold text-stone-900 dark:text-stone-100">{t('landing.ctaTitle')}</p>
+            <p className="text-sm text-stone-400 dark:text-stone-500 mt-0.5">{t('landing.ctaDesc')}</p>
           </div>
-          <Button onClick={() => navigate('/register')} className="flex-shrink-0">Create My Portfolio →</Button>
+          <Button onClick={() => navigate('/register')} className="flex-shrink-0">{t('landing.ctaBtn')}</Button>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-stone-200 dark:border-stone-800 py-5 px-6 bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between text-xs text-stone-400 dark:text-stone-500 gap-1">
           <span>© 2026 Financial Wisdom · Şile Işık Üniversitesi</span>
-          <span>⚠ For educational purposes only. Not financial advice.</span>
+          <span>{t('footer.educational')}</span>
         </div>
       </footer>
     </div>

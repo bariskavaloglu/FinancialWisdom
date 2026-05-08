@@ -6,11 +6,13 @@ import { Alert, Spinner } from '@/components/ui/index'
 import { QUESTIONS, CATEGORIES, computeCompositeScore } from '@/components/questionnaire/questions'
 import { useSessionStorage } from '@/hooks/useSessionStorage'
 import { assessmentService } from '@/services'
+import { useThemeLang } from '@/context/ThemeLanguageContext'
 import type { QuestionnaireAnswer } from '@/types'
 
 const QUESTIONS_PER_CATEGORY = 3 // 15 questions / 5 categories
 
 export default function QuestionnairePage() {
+  const { t } = useThemeLang()
   const navigate = useNavigate()
 
   // UC-03: Preserve partial answers on browser refresh (RAD requirement)
@@ -61,7 +63,7 @@ export default function QuestionnairePage() {
       clearAnswers()
       navigate('/profile/result', { state: { result } })
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : 'Submission failed. Please try again.')
+      setSubmitError(err instanceof Error ? err.message : t('common.loading').replace('…', '') + ' failed.')
     } finally {
       setIsSubmitting(false)
     }
