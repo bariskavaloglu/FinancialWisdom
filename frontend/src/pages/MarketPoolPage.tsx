@@ -128,7 +128,7 @@ function FactorScoreBar({ score }: { score: number }) {
 // ─── Panel: Factor Score Chart across all tickers ─────────────────────────────
 
 function FactorOverviewChart({ items }: { items: PoolItem[] }) {
-  const { theme } = useThemeLang()
+  const { theme, t } = useThemeLang()
   const isDark = theme === 'dark'
 
   const data = items
@@ -156,7 +156,7 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
   return (
     <div className="card">
       <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
-        Factor Score — Universe Comparison
+        {t('chart.factorScore').split('(')[0].trim()}
       </h3>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} barSize={22} margin={{ left: -10 }}>
@@ -196,11 +196,12 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
 // ─── Panel: Daily change mini heat strip ─────────────────────────────────────
 
 function DailyChangeHeatmap({ items }: { items: PoolItem[] }) {
+  const { t } = useThemeLang()
   const sorted = [...items].sort((a, b) => (b.dailyChange ?? 0) - (a.dailyChange ?? 0))
   return (
     <div className="card">
-      <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest mb-4">
-        Daily Change — All Tickers
+      <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
+        {t('pool.dailyChange')} — {t('pool.allInstruments')}
       </h3>
       <div className="flex flex-wrap gap-2">
         {sorted.map(item => {
@@ -305,16 +306,16 @@ function PoolTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-stone-200 dark:border-stone-700">
-              <th className={thClass} onClick={() => handleSort('ticker')}>Ticker <SortIcon k="ticker" /></th>
+              <th className={thClass} onClick={() => handleSort('ticker')}>{t('chart.instrument')} <SortIcon k="ticker" /></th>
               <th className={`${thClass} hidden sm:table-cell`}>{t('chart.class')}</th>
-              <th className={`${thClass} hidden md:table-cell`}>Exchange</th>
+              <th className={`${thClass} hidden md:table-cell`}>{t('pool.exchange')}</th>
               <th className={`${thClass} text-right`} onClick={() => handleSort('currentPrice')}>
-                Price <SortIcon k="currentPrice" />
+                {t('pool.price')} <SortIcon k="currentPrice" />
               </th>
               <th className={`${thClass} text-right`} onClick={() => handleSort('dailyChange')}>
-                1d Chg <SortIcon k="dailyChange" />
+                {t('pool.dailyChg')} <SortIcon k="dailyChange" />
               </th>
-              <th className={`${thClass} hidden lg:table-cell`}>52W Range</th>
+              <th className={`${thClass} hidden lg:table-cell`}>{t('pool.range52w')}</th>
               <th className={`${thClass} hidden xl:table-cell`} onClick={() => handleSort('dataPoints')}>
                 {t('pool.data')} <SortIcon k="dataPoints" />
               </th>
@@ -457,14 +458,14 @@ function TickerDrawer({ ticker, period, onClose }: {
                 </div>
                 <div className="text-right text-xs text-stone-400">
                   <p>{data.history?.length ?? 0} {t('pool.dataPoints')}</p>
-                  <p>Last: {data.history?.at(-1)?.date ?? '—'}</p>
+                  <p>{t('common.current')}: {data.history?.at(-1)?.date ?? '—'}</p>
                 </div>
               </div>
 
               {/* Mini chart */}
               {chartData.length > 0 && (
                 <div>
-                  <p className="text-xs text-stone-400 uppercase tracking-widest mb-2">>{t('pool.priceLast90')}</p>
+                  <p className="text-xs text-stone-400 uppercase tracking-widest mb-2">{t('pool.priceLast90')}</p>
                   <ResponsiveContainer width="100%" height={130}>
                     <AreaChart data={chartData} margin={{ left: -20 }}>
                       <defs>
@@ -478,7 +479,7 @@ function TickerDrawer({ ticker, period, onClose }: {
                       <YAxis tick={{ fill: '#a8a29e', fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
                       <Tooltip
                         contentStyle={{ background: isDark ? '#1c1917' : '#fff', border: isDark ? '1px solid #44403c' : '1px solid #e7e5e4', borderRadius: 8, fontSize: 11 }}
-                        formatter={(v: number) => [`$${v.toFixed(2)}`, 'Close']}
+                        formatter={(v: number) => [`$${v.toFixed(2)}`, t('pool.price')]}
                       />
                       <Area type="monotone" dataKey="close" stroke={isDark ? '#d6d3d1' : '#1c1917'} strokeWidth={1.5} fill={`url(#grad-${ticker})`} dot={false} />
                     </AreaChart>
@@ -489,11 +490,15 @@ function TickerDrawer({ ticker, period, onClose }: {
               {/* Factor scores */}
               {data.factorScore && (
                 <div>
-                  <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">>{t('pool.factorScores')}</p>
+                  <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">{t('pool.factorScores')}</p>
                   <div className="space-y-2.5">
-                    {(['momentum', 'volatility', 'composite'] as const).map(key => (
+                    {(['momentum', 'volatility', 'composite'] as const).map(key => {
+                      const keyLabel = key === 'momentum' ? t('dash.momentum') :
+                                       key === 'volatility' ? t('stat.expectedVolatility').split(' ')[0] :
+                                       t('pool.compositeName')
+                      return (
                       <div key={key} className="flex items-center justify-between gap-3">
-                        <span className="text-sm text-stone-500 capitalize">{key}</span>
+                        <span className="text-sm text-stone-500 dark:text-stone-400">{keyLabel}</span>
                         <div className="flex items-center gap-2">
                           <div className="w-28 h-1.5 bg-stone-100 rounded-full overflow-hidden">
                             <div
@@ -509,7 +514,7 @@ function TickerDrawer({ ticker, period, onClose }: {
                           </span>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 </div>
               )}
@@ -523,15 +528,15 @@ function TickerDrawer({ ticker, period, onClose }: {
                 const pct    = h52 !== l52 ? Math.round(((data.currentPrice - l52) / (h52 - l52)) * 100) : 0
                 return (
                   <div>
-                    <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">>{t('pool.range52wTitle')}</p>
+                    <p className="text-xs text-stone-400 uppercase tracking-widest mb-3">{t('pool.range52wTitle')}</p>
                     <div className="space-y-1.5">
                       <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
                         <div className="h-full bg-stone-900 rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                       <div className="flex justify-between text-xs text-stone-400 tabular-nums">
-                        <span>Low ${l52.toFixed(2)}</span>
-                        <span className="text-stone-600 dark:text-stone-400 font-medium">{pct}th pct</span>
-                        <span>High ${h52.toFixed(2)}</span>
+                        <span>${l52.toFixed(2)}</span>
+                        <span className="text-stone-600 dark:text-stone-400 font-medium">{pct}%</span>
+                        <span>${h52.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -539,7 +544,7 @@ function TickerDrawer({ ticker, period, onClose }: {
               })()}
             </>
           ) : (
-            <p className="text-stone-400 text-sm text-center py-8">>{t('pool.noData')}</p>
+            <p className="text-stone-400 text-sm text-center py-8">{t('pool.noData')}</p>
           )}
         </div>
 
@@ -605,7 +610,7 @@ export default function MarketPoolPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold text-stone-900 dark:text-stone-100">Market Data Pool</h1>
+            <h1 className="font-display text-2xl font-bold text-stone-900 dark:text-stone-100">{t('pool.title')}</h1>
             <p className="text-sm text-stone-400 mt-0.5">
               {data?.count ?? '—'} instruments · USDTRY {data?.usdtryRate?.toFixed(2) ?? '—'} ·{' '}
               {data?.generatedAt ? new Date(data.generatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'}
@@ -658,7 +663,7 @@ export default function MarketPoolPage() {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">⌕</span>
             <input
               type="text"
-              placeholder="Search ticker or name…"
+              placeholder={t('pool.searchPlaceholder')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="input pl-8 py-2 text-sm w-52"

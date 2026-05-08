@@ -204,6 +204,7 @@ const translations: Record<Language, Record<string, string>> = {
     'pool.fullDetail':       'Full Detail Page →',
     'pool.deletePortfolio':  'Delete portfolio',
     'pool.compositeName':    'Composite',
+    'pool.exchange':         'Exchange',
 
     // Dashboard delete
     'dash.deletePortfolio':  'Delete portfolio',
@@ -514,6 +515,7 @@ const translations: Record<Language, Record<string, string>> = {
     'pool.fullDetail':       'Tam Detay Sayfası →',
     'pool.deletePortfolio':  'Portföyü sil',
     'pool.compositeName':    'Kompozit',
+    'pool.exchange':         'Borsa',
 
     // Dashboard delete
     'dash.deletePortfolio':  'Portföyü sil',
