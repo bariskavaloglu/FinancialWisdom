@@ -12,7 +12,7 @@ const ENDPOINT_TIMEOUTS: Record<string, number> = {
 }
 
 function resolveTimeout(config: AxiosRequestConfig): number {
-  const key = `${(config.method || 'GET').toUpperCase()} ${config.url || ''}`
+  const key = `${(config.method || 'GET').toLocaleUpperCase('en-US')} ${config.url || ''}`
   for (const [pattern, ms] of Object.entries(ENDPOINT_TIMEOUTS)) {
     if (key.startsWith(pattern)) return ms
   }

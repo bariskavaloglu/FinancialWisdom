@@ -40,7 +40,7 @@ export function Navbar() {
     .map((n) => n[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase() ?? '?'
+    .toLocaleUpperCase('en-US') ?? '?'
 
   return (
     <header className="sticky top-0 z-50 bg-stone-100/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-colors duration-200">
@@ -161,7 +161,7 @@ export function Navbar() {
                           </span>
                         </div>
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400">
-                          {language.toUpperCase()}
+                          {language.toLocaleUpperCase('en-US')}
                         </span>
                       </button>
                     </div>

@@ -205,7 +205,7 @@ export default function ProfilePage() {
     .map((n) => n[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase()
+    .toLocaleUpperCase('en-US')
 
   const handleNameSaved = (newName: string) => {
     setDisplayName(newName)

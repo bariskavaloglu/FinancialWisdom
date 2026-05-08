@@ -19,6 +19,7 @@ interface UseApiOptions {
  */
 export function useApi<T>(
   fetcher: () => Promise<T>,
+  deps: unknown[] = [],
   options: UseApiOptions = {}
 ) {
   const { immediate = true } = options
@@ -42,9 +43,10 @@ export function useApi<T>(
     }
   }, [])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (immediate) fetch()
-  }, [immediate, fetch])
+  }, [immediate, fetch, ...deps])
 
   return { ...state, refetch: fetch }
 }

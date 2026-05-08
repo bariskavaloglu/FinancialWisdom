@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Spinner } from '@/components/ui/index'
 import { useApi } from '@/hooks/useApi'
+import { useThemeLang } from '@/context/ThemeLanguageContext'
 import { api } from '@/services/api'
 import {
   AreaChart, Area,
@@ -43,12 +44,12 @@ interface PoolSnapshot {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const ASSET_CONFIG: Record<AssetClass, { label: string; color: string; bg: string }> = {
-  BIST_EQUITY:     { label: 'BIST',       color: '#1c1917', bg: '#1c191715' },
-  SP500_EQUITY:    { label: 'S&P 500',    color: '#3B82F6', bg: '#3B82F615' },
-  COMMODITY:       { label: 'Commodity',  color: '#22C55E', bg: '#22C55E15' },
-  CRYPTOCURRENCY:  { label: 'Crypto',     color: '#A78BFA', bg: '#A78BFA15' },
-  CASH_EQUIVALENT: { label: 'Cash',       color: '#6B7280', bg: '#6B728015' },
+const ASSET_CONFIG: Record<AssetClass, { label: string; color: string; bg: string; darkColor: string }> = {
+  BIST_EQUITY:     { label: 'BIST',       color: '#a8a29e', darkColor: '#d6d3d1', bg: '#a8a29e15' },
+  SP500_EQUITY:    { label: 'S&P 500',    color: '#3B82F6', darkColor: '#60a5fa', bg: '#3B82F615' },
+  COMMODITY:       { label: 'Commodity',  color: '#22C55E', darkColor: '#4ade80', bg: '#22C55E15' },
+  CRYPTOCURRENCY:  { label: 'Crypto',     color: '#A78BFA', darkColor: '#c4b5fd', bg: '#A78BFA15' },
+  CASH_EQUIVALENT: { label: 'Cash',       color: '#6B7280', darkColor: '#9ca3af', bg: '#6B728015' },
 }
 
 const PERIODS = [
@@ -126,6 +127,9 @@ function FactorScoreBar({ score }: { score: number }) {
 // ─── Panel: Factor Score Chart across all tickers ─────────────────────────────
 
 function FactorOverviewChart({ items }: { items: PoolItem[] }) {
+  const { theme } = useThemeLang()
+  const isDark = theme === 'dark'
+
   const data = items
     .filter(i => i.factorScore)
     .map(i => ({
@@ -139,24 +143,34 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
 
   if (!data.length) return null
 
+  const gridColor  = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)'
+  const tickColor  = isDark ? '#a8a29e' : '#78716c'
+  const tipStyle   = {
+    background:   isDark ? '#1c1917' : '#fff',
+    border:       isDark ? '1px solid #44403c' : '1px solid #e7e5e4',
+    borderRadius: 8,
+    fontSize:     12,
+  }
+
   return (
     <div className="card">
-      <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest mb-4">
+      <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
         Factor Score — Universe Comparison
       </h3>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} barSize={22} margin={{ left: -10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-          <XAxis dataKey="name" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis domain={[0, 100]} tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+          <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
+          <YAxis domain={[0, 100]} tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
           <Tooltip
-            contentStyle={{ background: '#fff', border: '1px solid #e7e5e4', borderRadius: 8, fontSize: 12 }}
-            formatter={(v: number, name: string) => [v.toFixed(1), name.charAt(0).toUpperCase() + name.slice(1)]}
+            contentStyle={tipStyle}
+            formatter={(v: number, name: string) => [v.toFixed(1), name.charAt(0).toLocaleUpperCase('en-US') + name.slice(1)]}
           />
           <Bar dataKey="score" radius={[4, 4, 0, 0]} name="Composite">
-            {data.map((d, i) => (
-              <Cell key={i} fill={ASSET_CONFIG[d.assetClass]?.color ?? '#1c1917'} />
-            ))}
+            {data.map((d, i) => {
+              const cfg = ASSET_CONFIG[d.assetClass]
+              return <Cell key={i} fill={isDark ? cfg.darkColor : cfg.color} />
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -168,8 +182,8 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
           if (!hasData) return null
           return (
             <div key={cls} className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: cfg.color }} />
-              <span className="text-xs text-stone-500">{cfg.label}</span>
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: isDark ? cfg.darkColor : cfg.color }} />
+              <span className="text-xs text-stone-500 dark:text-stone-400">{cfg.label}</span>
             </div>
           )
         })}
@@ -235,6 +249,7 @@ function PoolTable({
   selectedTicker: string | null
 }) {
   const navigate = useNavigate()
+  const { t } = useThemeLang()
   const [sortKey, setSortKey]   = useState<SortKey>('assetClass' as SortKey)
   const [sortDir, setSortDir]   = useState<SortDir>('asc')
 
@@ -363,9 +378,9 @@ function PoolTable({
                   <td className="py-3 pl-2">
                     <button
                       onClick={(e) => { e.stopPropagation(); navigate(`/instrument/${encodeURIComponent(item.ticker)}`) }}
-                      className="text-xs text-amber-700 hover:underline px-2 py-1 border border-amber-200 rounded-lg hover:bg-amber-50 whitespace-nowrap"
+                      className="text-xs text-amber-700 dark:text-amber-400 hover:underline px-2 py-1 border border-amber-200 dark:border-amber-700 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 whitespace-nowrap"
                     >
-                      Detail →
+                      {t('chart.detail')} →
                     </button>
                   </td>
                 </tr>
@@ -545,6 +560,7 @@ export default function MarketPoolPage() {
   const [filterClass, setFilterClass]   = useState<AssetClass | 'ALL'>('ALL')
   const [search, setSearch]             = useState('')
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null)
+  const { t } = useThemeLang()
 
   const { data, isLoading, error } = useApi<PoolSnapshot>(
     () => {
@@ -552,7 +568,7 @@ export default function MarketPoolPage() {
       if (filterClass !== 'ALL') params.set('asset_class', filterClass)
       return api.get(`/pool?${params}`).then(r => r.data)
     },
-    [period, filterClass] as any
+    [period, filterClass]
   )
 
   const items = useMemo(() => {
@@ -594,14 +610,14 @@ export default function MarketPoolPage() {
           </div>
 
           {/* Period selector */}
-          <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-lg">
+          <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-1 rounded-lg">
             {PERIODS.map(p => (
               <button
                 key={p.value}
                 onClick={() => setPeriod(p.value)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                   period === p.value
-                    ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm'
+                    ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm'
                     : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
                 }`}
               >
@@ -613,7 +629,7 @@ export default function MarketPoolPage() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Instruments" value={String(data?.count ?? '—')} sub={`${period.toUpperCase()} period`} />
+          <StatCard label="Total Instruments" value={String(data?.count ?? '—')} sub={`${period.toLocaleUpperCase('en-US')} period`} />
           <StatCard
             label="Gainers / Losers"
             value={`${gainers} / ${losers}`}
