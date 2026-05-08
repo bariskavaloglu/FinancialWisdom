@@ -19,10 +19,15 @@ interface UseApiOptions {
  */
 export function useApi<T>(
   fetcher: () => Promise<T>,
-  deps: unknown[] = [],
+  depsOrOptions: unknown[] | UseApiOptions = [],
   options: UseApiOptions = {}
 ) {
-  const { immediate = true } = options
+  // Geriye dönük uyumluluk: ikinci parametre options objesi mi yoksa deps array mi?
+  const isOptions = !Array.isArray(depsOrOptions) && typeof depsOrOptions === 'object'
+  const deps    = isOptions ? [] : (depsOrOptions as unknown[])
+  const opts    = isOptions ? (depsOrOptions as UseApiOptions) : options
+  const { immediate = true } = opts
+
   const [state, setState] = useState<UseApiState<T>>({
     data: null,
     isLoading: immediate,

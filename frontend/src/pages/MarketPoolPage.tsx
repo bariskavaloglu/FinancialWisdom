@@ -45,11 +45,11 @@ interface PoolSnapshot {
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const ASSET_CONFIG: Record<AssetClass, { label: string; color: string; bg: string; darkColor: string }> = {
-  BIST_EQUITY:     { label: 'BIST',       color: '#a8a29e', darkColor: '#d6d3d1', bg: '#a8a29e15' },
+  BIST_EQUITY:     { label: 'BIST',       color: '#f97316', darkColor: '#fb923c', bg: '#f9731615' },
   SP500_EQUITY:    { label: 'S&P 500',    color: '#3B82F6', darkColor: '#60a5fa', bg: '#3B82F615' },
   COMMODITY:       { label: 'Commodity',  color: '#22C55E', darkColor: '#4ade80', bg: '#22C55E15' },
   CRYPTOCURRENCY:  { label: 'Crypto',     color: '#A78BFA', darkColor: '#c4b5fd', bg: '#A78BFA15' },
-  CASH_EQUIVALENT: { label: 'Cash',       color: '#6B7280', darkColor: '#9ca3af', bg: '#6B728015' },
+  CASH_EQUIVALENT: { label: 'Cash',       color: '#6B7280', darkColor: '#d1d5db', bg: '#6B728015' },
 }
 
 const PERIODS = [
@@ -78,11 +78,13 @@ function StatCard({ label, value, sub, accent }: {
 }
 
 function AssetClassBadge({ assetClass }: { assetClass: AssetClass }) {
+  const { theme } = useThemeLang()
   const cfg = ASSET_CONFIG[assetClass]
+  const clr = theme === 'dark' ? cfg.darkColor : cfg.color
   return (
     <span
       className="text-xs px-2 py-0.5 rounded-full border font-medium whitespace-nowrap"
-      style={{ color: cfg.color, borderColor: `${cfg.color}40`, background: cfg.bg }}
+      style={{ color: clr, borderColor: `${clr}40`, background: cfg.bg }}
     >
       {cfg.label}
     </span>
@@ -100,12 +102,11 @@ function ChangeCell({ value }: { value: number | null }) {
 }
 
 function DataQualityBar({ points }: { points: number }) {
-  // 252 trading days ≈ 1y full. Anything ≥200 is good.
   const pct = Math.min(100, Math.round((points / 252) * 100))
   const color = pct >= 80 ? '#22C55E' : pct >= 40 ? '#F59E0B' : '#EF4444'
   return (
     <div className="flex items-center gap-2">
-      <div className="w-14 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+      <div className="w-14 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
       <span className="text-xs text-stone-400 tabular-nums w-7">{points}d</span>
@@ -116,10 +117,10 @@ function DataQualityBar({ points }: { points: number }) {
 function FactorScoreBar({ score }: { score: number }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 h-1.5 bg-stone-100 rounded-full overflow-hidden">
-        <div className="h-full bg-stone-900 rounded-full" style={{ width: `${score}%` }} />
+      <div className="w-16 h-1.5 bg-stone-200 dark:bg-stone-700 rounded-full overflow-hidden">
+        <div className="h-full bg-stone-700 dark:bg-stone-300 rounded-full" style={{ width: `${score}%` }} />
       </div>
-      <span className="text-xs text-stone-500 w-6 text-right tabular-nums">{score}</span>
+      <span className="text-xs text-stone-500 dark:text-stone-400 w-6 text-right tabular-nums">{score}</span>
     </div>
   )
 }
@@ -303,7 +304,7 @@ function PoolTable({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-stone-200">
+            <tr className="border-b border-stone-200 dark:border-stone-700">
               <th className={thClass} onClick={() => handleSort('ticker')}>Ticker <SortIcon k="ticker" /></th>
               <th className={`${thClass} hidden sm:table-cell`}>Class</th>
               <th className={`${thClass} hidden md:table-cell`}>Exchange</th>
@@ -323,7 +324,7 @@ function PoolTable({
               <th className={thClass}></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
+          <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
             {sorted.map(item => {
               const isSelected = item.ticker === selectedTicker
               const week52Pct = item.week52High && item.week52Low && item.week52High !== item.week52Low
@@ -400,9 +401,11 @@ function TickerDrawer({ ticker, period, onClose }: {
   period: string
   onClose: () => void
 }) {
+  const { theme } = useThemeLang()
+  const isDark = theme === 'dark'
   const { data, isLoading } = useApi(
     () => ticker ? api.get(`/pool/${ticker}?period=${period}`).then(r => r.data) : Promise.resolve(null),
-    [ticker, period] as any
+    [ticker, period]
   )
 
   if (!ticker) return null
@@ -427,7 +430,7 @@ function TickerDrawer({ ticker, period, onClose }: {
       {/* Drawer */}
       <div className="relative w-full max-w-md bg-white dark:bg-stone-900 border-l border-stone-200 dark:border-stone-700 shadow-2xl pointer-events-auto flex flex-col animate-[slideIn_0.2s_ease-out]">
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-stone-100">
+        <div className="flex items-start justify-between p-6 border-b border-stone-100 dark:border-stone-800">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <AssetClassBadge assetClass={(meta.assetClass as AssetClass) ?? 'SP500_EQUITY'} />
@@ -466,18 +469,18 @@ function TickerDrawer({ ticker, period, onClose }: {
                     <AreaChart data={chartData} margin={{ left: -20 }}>
                       <defs>
                         <linearGradient id={`grad-${ticker}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%"  stopColor="#1c1917" stopOpacity={0.12} />
-                          <stop offset="95%" stopColor="#1c1917" stopOpacity={0} />
+                          <stop offset="5%"  stopColor={isDark ? '#d6d3d1' : '#1c1917'} stopOpacity={0.15} />
+                          <stop offset="95%" stopColor={isDark ? '#d6d3d1' : '#1c1917'} stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" />
                       <XAxis dataKey="date" tick={{ fill: '#a8a29e', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                       <YAxis tick={{ fill: '#a8a29e', fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
                       <Tooltip
-                        contentStyle={{ background: '#fff', border: '1px solid #e7e5e4', borderRadius: 8, fontSize: 11 }}
+                        contentStyle={{ background: isDark ? '#1c1917' : '#fff', border: isDark ? '1px solid #44403c' : '1px solid #e7e5e4', borderRadius: 8, fontSize: 11 }}
                         formatter={(v: number) => [`$${v.toFixed(2)}`, 'Close']}
                       />
-                      <Area type="monotone" dataKey="close" stroke="#1c1917" strokeWidth={1.5} fill={`url(#grad-${ticker})`} dot={false} />
+                      <Area type="monotone" dataKey="close" stroke={isDark ? '#d6d3d1' : '#1c1917'} strokeWidth={1.5} fill={`url(#grad-${ticker})`} dot={false} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -540,7 +543,7 @@ function TickerDrawer({ ticker, period, onClose }: {
           )}
         </div>
 
-        <div className="p-4 border-t border-stone-100">
+        <div className="p-4 border-t border-stone-100 dark:border-stone-800">
           <a
             href={`/instrument/${encodeURIComponent(ticker)}`}
             className="btn-secondary w-full text-sm justify-center"
@@ -560,7 +563,7 @@ export default function MarketPoolPage() {
   const [filterClass, setFilterClass]   = useState<AssetClass | 'ALL'>('ALL')
   const [search, setSearch]             = useState('')
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null)
-  const { t } = useThemeLang()
+  const { t, theme } = useThemeLang()
 
   const { data, isLoading, error } = useApi<PoolSnapshot>(
     () => {
@@ -677,14 +680,15 @@ export default function MarketPoolPage() {
             {ALL_CLASSES.map(cls => {
               const cfg = ASSET_CONFIG[cls]
               const active = filterClass === cls
+              const clr = theme === 'dark' ? cfg.darkColor : cfg.color
               return (
                 <button
                   key={cls}
                   onClick={() => setFilterClass(active ? 'ALL' : cls)}
                   className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
                   style={active
-                    ? { background: cfg.color, color: '#fff', borderColor: cfg.color }
-                    : { background: '#fff', color: cfg.color, borderColor: `${cfg.color}60` }
+                    ? { background: clr, color: '#fff', borderColor: clr }
+                    : { background: 'transparent', color: clr, borderColor: `${clr}80` }
                   }
                 >
                   {cfg.label}
