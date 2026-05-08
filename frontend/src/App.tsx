@@ -8,6 +8,8 @@ import { lazy, Suspense } from 'react'
 const LandingPage       = lazy(() => import('@/pages/LandingPage'))
 const LoginPage         = lazy(() => import('@/pages/LoginPage'))
 const RegisterPage      = lazy(() => import('@/pages/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage'))
+const ResetPasswordPage  = lazy(() => import('@/pages/ResetPasswordPage'))
 const QuestionnairePage = lazy(() => import('@/pages/QuestionnairePage'))
 const ProfileResultPage = lazy(() => import('@/pages/ProfileResultPage'))
 const DashboardPage     = lazy(() => import('@/pages/DashboardPage'))
@@ -70,6 +72,8 @@ export default function App() {
             {/* Public */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password"  element={<ResetPasswordPage />} />
 
             {/* Guest only (redirect to dashboard if logged in) */}
             <Route element={<GuestRoute />}>

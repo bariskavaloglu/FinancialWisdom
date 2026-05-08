@@ -34,7 +34,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md animate-slide-up">
         <div className="text-center mb-8">
           <h1 className="font-display text-3xl font-bold text-stone-900 dark:text-stone-100 mb-2">Welcome back</h1>
-          <p className="text-stone-500 text-sm">Sign in to your account</p>
+          <p className="text-stone-500 dark:text-stone-400 text-sm">Sign in to your account</p>
         </div>
         {error && <div className="mb-4"><Alert variant="error">{error}</Alert></div>}
 
@@ -61,6 +61,15 @@ export default function LoginPage() {
               error={fieldErrors.password}
             />
           </FormField>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => navigate('/forgot-password')}
+              className="text-xs text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:underline transition-colors"
+            >
+              Forgot password?
+            </button>
+          </div>
           <Button type="submit" className="w-full mt-2" isLoading={isLoading}>Sign In</Button>
         </form>
         <div className="relative mt-4">

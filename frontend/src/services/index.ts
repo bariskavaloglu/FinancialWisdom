@@ -74,6 +74,10 @@ export const portfolioService = {
     })
     return data
   },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/portfolios/${id}`)
+  },
 }
 
 // ─── Instrument Service ───────────────────────────────────────────────────────

@@ -17,7 +17,7 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.email import send_verification_email
+from app.core.email import send_verification_email, send_password_reset_email
 from app.core.redis_client import get_redis
 from app.core.security import (
     create_access_token,
@@ -34,6 +34,8 @@ from app.schemas.auth import (
     RegisterRequest,
     RegisterResponse,
     ResendVerificationRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserResponse,
     VerifyEmailRequest,
@@ -204,6 +206,61 @@ def logout(body: RefreshRequest):
     redis = get_redis()
     redis.setex(f"{_BLACKLIST_PREFIX}{body.refreshToken}", _BLACKLIST_TTL, "1")
     logger.info("Logout — refresh token revoked.")
+
+
+# ── Forgot Password ───────────────────────────────────────────────────────────
+
+_RESET_PREFIX = "pw_reset:"
+_RESET_TTL = 60 * 60  # 1 hour
+
+
+@router.post("/forgot-password", status_code=status.HTTP_204_NO_CONTENT)
+def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Generates a password reset token, stores it in Redis (TTL 1h),
+    and sends a reset email. Always returns 204 to prevent email enumeration.
+    """
+    user = db.query(User).filter(User.email == body.email, User.is_active == True).first()
+    if not user:
+        return  # Prevent email enumeration
+
+    reset_token = secrets.token_urlsafe(32)
+    redis = get_redis()
+    redis.setex(f"{_RESET_PREFIX}{reset_token}", _RESET_TTL, str(user.id))
+
+    try:
+        send_password_reset_email(user.email, user.full_name, reset_token)
+    except Exception as exc:
+        logger.error("Failed to send password reset email: %s", exc)
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Validates the reset token from Redis and updates the user's password.
+    """
+    redis = get_redis()
+    key = f"{_RESET_PREFIX}{body.token}"
+    user_id = redis.get(key)
+
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired password reset link.",
+        )
+
+    user_id_str = user_id.decode() if isinstance(user_id, bytes) else str(user_id)
+    user = db.query(User).filter(User.id == user_id_str, User.is_active == True).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found.",
+        )
+
+    user.hashed_password = hash_password(body.new_password)
+    db.commit()
+    redis.delete(key)
+    logger.info("Password reset successful: %s", user.email)
 
 
 # ── GET /auth/me ──────────────────────────────────────────────────────────────

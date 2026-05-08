@@ -184,6 +184,7 @@ export default function BacktestPage() {
   const currentYear = new Date().getFullYear()
 
   const [portfolio,        setPortfolio       ] = useState<Portfolio | null>(null)
+  const [allPortfolios,    setAllPortfolios    ] = useState<Portfolio[]>([])
   const [loadingPortfolio, setLoadingPortfolio] = useState(true)
   const [portfolioError,   setPortfolioError  ] = useState<string | null>(null)
 
@@ -198,10 +199,14 @@ export default function BacktestPage() {
     (y) => y >= 2022,
   )
 
-  // 1. Kullanıcının portföyünü yükle
+  // 1. Kullanıcının tüm portföylerini yükle
   useEffect(() => {
-    portfolioService.getLatest()
-      .then((p) => { setPortfolio(p); setLoadingPortfolio(false) })
+    Promise.all([portfolioService.getLatest(), portfolioService.list()])
+      .then(([latest, all]) => {
+        setPortfolio(latest)
+        setAllPortfolios(all)
+        setLoadingPortfolio(false)
+      })
       .catch(() => { setPortfolioError('Portföy yüklenemedi.'); setLoadingPortfolio(false) })
   }, [])
 
@@ -394,6 +399,23 @@ export default function BacktestPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* Portföy seçimi */}
+            {allPortfolios.length > 1 && (
+              <select
+                value={portfolio?.portfolioId ?? ''}
+                onChange={(e) => {
+                  const selected = allPortfolios.find((p) => p.portfolioId === e.target.value)
+                  if (selected) { setPortfolio(selected); setResult(null) }
+                }}
+                className="text-sm px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300"
+              >
+                {allPortfolios.map((p) => (
+                  <option key={p.portfolioId} value={p.portfolioId}>
+                    {PROFILE_LABELS[p.profileType] ?? p.profileType} · {HORIZON_LABELS[p.horizonType] ?? p.horizonType} · {new Date(p.generatedAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </option>
+                ))}
+              </select>
+            )}
             <div className="flex rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 text-xs">
               <span className="px-3 py-2 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-medium">
                 Oca–Haz {year} analiz

@@ -54,29 +54,29 @@ export default function RegisterPage() {
       <AuthLayout>
         <div className="w-full max-w-md animate-slide-up">
           <div className="card text-center space-y-5">
-            <div className="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center mx-auto text-3xl">
+            <div className="w-16 h-16 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto text-3xl">
               📧
             </div>
             <div>
-              <h2 className="font-display text-2xl font-bold text-stone-900 mb-2">
+              <h2 className="font-display text-2xl font-bold text-stone-900 dark:text-stone-100 mb-2">
                 Verify Your Email
               </h2>
-              <p className="text-stone-500 text-sm leading-relaxed">
+              <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed">
                 We sent a verification link to{' '}
-                <strong className="text-stone-700">{pendingEmail}</strong>.
+                <strong className="text-stone-700 dark:text-stone-300">{pendingEmail}</strong>.
               </p>
             </div>
 
-            <div className="bg-stone-50 rounded-xl p-4 text-left space-y-2">
-              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest">Next steps</p>
+            <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl p-4 text-left space-y-2">
+              <p className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-widest">Next steps</p>
               <ol className="space-y-2">
                 {[
                   'Check your inbox (also try your spam folder)',
                   'Click the "Verify My Email" button in the email',
                   'You will be logged in automatically',
                 ].map((step, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-stone-600">
-                    <span className="w-5 h-5 rounded-full bg-stone-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-stone-500 mt-0.5">
+                  <li key={i} className="flex items-start gap-2 text-sm text-stone-600 dark:text-stone-300">
+                    <span className="w-5 h-5 rounded-full bg-stone-200 dark:bg-stone-700 flex-shrink-0 flex items-center justify-center text-xs font-bold text-stone-500 dark:text-stone-400 mt-0.5">
                       {i + 1}
                     </span>
                     {step}
@@ -113,8 +113,8 @@ export default function RegisterPage() {
     <AuthLayout>
       <div className="w-full max-w-4xl animate-slide-up">
         <div className="mb-6">
-          <h1 className="font-display text-3xl font-bold text-stone-900 mb-1">Create Account</h1>
-          <p className="text-stone-500 text-sm">Start building your personalised portfolio</p>
+          <h1 className="font-display text-3xl font-bold text-stone-900 dark:text-stone-100 mb-1">Create Account</h1>
+          <p className="text-stone-500 dark:text-stone-400 text-sm">Start building your personalised portfolio</p>
         </div>
 
         <div className="grid md:grid-cols-5 gap-6 items-start">
@@ -146,7 +146,7 @@ export default function RegisterPage() {
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" className="mt-0.5 w-4 h-4 accent-stone-900 cursor-pointer"
                       checked={form.acceptTerms} onChange={(e) => setForm({ ...form, acceptTerms: e.target.checked })} />
-                    <span className="text-sm text-stone-600">I accept the Terms of Service and Privacy Policy</span>
+                    <span className="text-sm text-stone-600 dark:text-stone-300">I accept the Terms of Service and Privacy Policy</span>
                   </label>
                   {fieldErrors.acceptTerms && (
                     <p className="mt-1 text-xs text-red-600 ml-7">{fieldErrors.acceptTerms}</p>
@@ -156,9 +156,9 @@ export default function RegisterPage() {
                   Create Account →
                 </Button>
               </form>
-              <p className="text-center text-sm text-stone-500">
+              <p className="text-center text-sm text-stone-500 dark:text-stone-400">
                 Already have an account?{' '}
-                <button onClick={() => navigate('/login')} className="text-stone-900 font-medium hover:underline">
+                <button onClick={() => navigate('/login')} className="text-stone-900 dark:text-stone-100 font-medium hover:underline">
                   Log in
                 </button>
               </p>
@@ -167,14 +167,14 @@ export default function RegisterPage() {
 
           <div className="md:col-span-2 space-y-4">
             <div className="card">
-              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-4">HOW IT WORKS</p>
+              <p className="text-xs font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-4">HOW IT WORKS</p>
               <ol className="space-y-3">
                 {STEPS.map((step, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <span className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold mt-0.5 ${
-                      i === 0 ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-400 border border-stone-200'
+                      i === 0 ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900' : 'bg-stone-100 dark:bg-stone-800 text-stone-400 border border-stone-200 dark:border-stone-700'
                     }`}>{i + 1}</span>
-                    <span className={`text-sm leading-snug ${i === 0 ? 'text-stone-900 font-medium' : 'text-stone-400'}`}>
+                    <span className={`text-sm leading-snug ${i === 0 ? 'text-stone-900 dark:text-stone-100 font-medium' : 'text-stone-400 dark:text-stone-500'}`}>
                       {step}
                     </span>
                   </li>

@@ -74,11 +74,15 @@ function fmtDateTime(iso: string, lang: 'en' | 'tr') {
 // ─── Portfolio History Dropdown ───────────────────────────────────────────────
 
 function PortfolioDropdown({
-  assessments, selectedId, onSelect,
+  assessments, selectedId, onSelect, onDelete, deletingId, deleteConfirmId, onDeleteConfirm,
 }: {
   assessments: AssessmentListItem[]
   selectedId:  string
   onSelect:    (portfolioId: string, assessmentItem: AssessmentListItem) => void
+  onDelete:    (portfolioId: string) => void
+  deletingId:  string | null
+  deleteConfirmId: string | null
+  onDeleteConfirm: (portfolioId: string | null) => void
 }) {
   const [open, setOpen] = useState(false)
   const { t, language } = useThemeLang()
@@ -118,37 +122,64 @@ function PortfolioDropdown({
                 const isSelected = a.portfolioId === selectedId
                 const isCurrent  = idx === 0
                 return (
-                  <button
-                    key={a.assessmentId}
-                    onClick={() => { onSelect(a.portfolioId, a); setOpen(false) }}
-                    className={`w-full text-left px-4 py-3 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/50 flex items-start gap-3 ${isSelected ? 'bg-amber-50 dark:bg-amber-900/20' : ''}`}
-                  >
-                    <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-base mt-0.5 ring-2 ${meta?.ring ?? 'ring-stone-200'}`}
-                      style={{ background: `${meta?.accent}18` }}
+                  <div key={a.assessmentId} className="relative">
+                    <button
+                      onClick={() => { onSelect(a.portfolioId, a); setOpen(false) }}
+                      className={`w-full text-left px-4 py-3 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800/50 flex items-start gap-3 pr-10 ${isSelected ? 'bg-amber-50 dark:bg-amber-900/20' : ''}`}
                     >
-                      {meta?.icon ?? '📋'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-semibold text-stone-900 dark:text-stone-100">
-                          {t(`profile.${a.profileType}`)}
-                        </span>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {isCurrent && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-medium">
-                              {t('common.current')}
-                            </span>
-                          )}
-                          {isSelected && <span className="text-amber-600 text-xs">✓</span>}
-                        </div>
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-base mt-0.5 ring-2 ${meta?.ring ?? 'ring-stone-200'}`}
+                        style={{ background: `${meta?.accent}18` }}
+                      >
+                        {meta?.icon ?? '📋'}
                       </div>
-                      <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
-                        {t('common.score')} {a.compositeScore}/100
-                      </p>
-                      <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">{fmtDate(a.completedAt, language)}</p>
-                    </div>
-                  </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                            {t(`profile.${a.profileType}`)}
+                          </span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {isCurrent && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-medium">
+                                {t('common.current')}
+                              </span>
+                            )}
+                            {isSelected && <span className="text-amber-600 text-xs">✓</span>}
+                          </div>
+                        </div>
+                        <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+                          {t('common.score')} {a.compositeScore}/100
+                        </p>
+                        <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">{fmtDate(a.completedAt, language)}</p>
+                      </div>
+                    </button>
+                    {/* Delete button */}
+                    {deleteConfirmId === a.portfolioId ? (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDelete(a.portfolioId) }}
+                          disabled={deletingId === a.portfolioId}
+                          className="text-[10px] px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                        >
+                          {deletingId === a.portfolioId ? '…' : 'Yes'}
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDeleteConfirm(null) }}
+                          className="text-[10px] px-2 py-1 rounded bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors"
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onDeleteConfirm(a.portfolioId) }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-300 dark:text-stone-600 hover:text-red-500 dark:hover:text-red-400 transition-colors text-base"
+                        title="Delete portfolio"
+                      >
+                        🗑
+                      </button>
+                    )}
+                  </div>
                 )
               })}
             </div>
@@ -536,6 +567,26 @@ export default function DashboardPage() {
   const [selectedAssessment, setSelectedAssessment]   = useState<AssessmentListItem | null>(null)
   const [viewedPortfolio, setViewedPortfolio]         = useState<Portfolio | null>(null)
   const [loadingViewed, setLoadingViewed]             = useState(false)
+  const [deletingId, setDeletingId]                   = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId]         = useState<string | null>(null)
+
+  const handleDeletePortfolio = useCallback(async (portfolioId: string) => {
+    setDeletingId(portfolioId)
+    try {
+      await portfolioService.delete(portfolioId)
+      // Reset selection if deleted portfolio was being viewed
+      if (selectedPortfolioId === portfolioId) {
+        setSelectedPortfolioId(null); setSelectedAssessment(null); setViewedPortfolio(null)
+      }
+      // Reload assessments list
+      window.location.reload()
+    } catch {
+      // silently ignore
+    } finally {
+      setDeletingId(null)
+      setDeleteConfirmId(null)
+    }
+  }, [selectedPortfolioId])
 
   const handleSelectPortfolio = useCallback(async (portfolioId: string, assessmentItem: AssessmentListItem) => {
     if (portfolioId === (currentPortfolio?.portfolioId ?? '')) {
@@ -614,6 +665,10 @@ export default function DashboardPage() {
                 assessments={assessments}
                 selectedId={dropdownSelected}
                 onSelect={handleSelectPortfolio}
+                onDelete={handleDeletePortfolio}
+                deletingId={deletingId}
+                deleteConfirmId={deleteConfirmId}
+                onDeleteConfirm={setDeleteConfirmId}
               />
             )}
             {isViewingHistory && (

@@ -166,9 +166,43 @@ def compare_portfolios(
     return PortfolioComparison(scenarioA=schema_a, scenarioB=schema_b, diff=diff)
 
 
-# ── GET /portfolios/:id ────────────────────────────────────────────────────────
+# ── DELETE /portfolios/:id ─────────────────────────────────────────────────────
 
-@router.get("/{portfolio_id}", response_model=PortfolioSchema)
+@router.delete("/{portfolio_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_portfolio(
+    portfolio_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Hard-deletes a portfolio and its allocations (cascade).
+    If the deleted portfolio was current, the next most recent becomes current.
+    """
+    portfolio = db.query(Portfolio).filter(
+        Portfolio.id == portfolio_id,
+        Portfolio.user_id == current_user.id,
+    ).first()
+    if not portfolio:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found")
+
+    was_current = portfolio.is_current
+    db.delete(portfolio)
+    db.commit()
+
+    # If we deleted the current portfolio, promote the next most recent one
+    if was_current:
+        next_portfolio = (
+            db.query(Portfolio)
+            .filter(Portfolio.user_id == current_user.id)
+            .order_by(Portfolio.generated_at.desc())
+            .first()
+        )
+        if next_portfolio:
+            next_portfolio.is_current = True
+            db.commit()
+
+    logger.info("Portfolio deleted: %s by user %s", portfolio_id, current_user.id)
+
 def get_portfolio_by_id(
     portfolio_id: str,
     db: Session = Depends(get_db),
