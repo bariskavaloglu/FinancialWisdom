@@ -7,6 +7,7 @@ GET  /portfolios                  → list all user portfolios
 GET  /portfolios/compare?a=&b=    → side-by-side comparison (UC-06)
 """
 import logging
+from app.core.redis_client import get_redis
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session

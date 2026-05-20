@@ -2,10 +2,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, Text, func
-from sqlalchemy.dialects.postgresql import JSON, UUID
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.database import Base
+from app.core.database import Base, GUID
 
 
 class Portfolio(Base):
@@ -17,13 +17,13 @@ class Portfolio(Base):
     __tablename__ = "portfolios"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        GUID(), primary_key=True, default=uuid.uuid4
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+        GUID(), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     assessment_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID(),
         ForeignKey("risk_assessments.id", ondelete="CASCADE"),
         nullable=False,
     )
@@ -70,10 +70,10 @@ class AssetAllocation(Base):
     __tablename__ = "asset_allocations"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        GUID(), primary_key=True, default=uuid.uuid4
     )
     portfolio_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        GUID(),
         ForeignKey("portfolios.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -91,7 +91,6 @@ class AssetAllocation(Base):
     target_weight: Mapped[float] = mapped_column(Float, nullable=False)
 
     # Layer 2: selected instruments with factor scores, stored as JSON array
-    # Structure: [{"ticker": "THYAO.IS", "name": "...", "factorScore": {...}, ...}]
     instruments: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
 
     # Relationships

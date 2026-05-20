@@ -1,5 +1,5 @@
 """
-Email service — for email verification.
+Email service — verification and password reset emails.
 EMAILS_ENABLED=False: does not send email, writes token to log.
 EMAILS_ENABLED=True: sends real email via Resend SDK.
 """
@@ -25,7 +25,7 @@ def send_verification_email(to_email: str, full_name: str, token: str) -> None:
 
     resend.api_key = os.environ.get("RESEND_API_KEY", "")
     if not resend.api_key:
-        logger.error("RESEND_API_KEY not set")
+        logger.error("RESEND_API_KEY not set — verification email not sent to %s", to_email)
         return
 
     html_body = f"""\
@@ -69,6 +69,20 @@ def send_verification_email(to_email: str, full_name: str, token: str) -> None:
 </html>
 """
 
+    try:
+        params = {
+            "from": "Financial Wisdom <noreply@financialwisdom.me>",
+            "to": [to_email],
+            "subject": "Financial Wisdom - Verify Your Email",
+            "html": html_body,
+        }
+        email = resend.Emails.send(params)
+        logger.info("Verification email sent: %s (id=%s)", to_email, email.get("id"))
+    except Exception as exc:
+        logger.error("Resend error (%s): %s", to_email, exc)
+        raise
+
+
 def send_password_reset_email(to_email: str, full_name: str, token: str) -> None:
     reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
 
@@ -83,7 +97,7 @@ def send_password_reset_email(to_email: str, full_name: str, token: str) -> None
 
     resend.api_key = os.environ.get("RESEND_API_KEY", "")
     if not resend.api_key:
-        logger.error("RESEND_API_KEY not set")
+        logger.error("RESEND_API_KEY not set — password reset email not sent to %s", to_email)
         return
 
     html_body = f"""\
@@ -138,4 +152,3 @@ def send_password_reset_email(to_email: str, full_name: str, token: str) -> None
     except Exception as exc:
         logger.error("Resend error (%s): %s", to_email, exc)
         raise
-

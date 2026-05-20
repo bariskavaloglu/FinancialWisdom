@@ -11,6 +11,8 @@ RAD/SDD ile eşleştirilmiş Functional (UC-01..UC-09) ve Non-Functional test se
 """
 
 import time
+import uuid
+from datetime import datetime, timezone
 import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
@@ -26,12 +28,19 @@ SQLALCHEMY_TEST_URL = "sqlite:///./test_scenarios.db"
 engine_test = create_engine(SQLALCHEMY_TEST_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine_test)
 
-mock_redis = MagicMock()
-mock_redis.get.return_value = None
-mock_redis.setex.return_value = True
-mock_redis.delete.return_value = True
+# Her test için temiz bir mock_redis instance'ı kullan
+def _make_redis_mock():
+    m = MagicMock()
+    m.get.return_value = None
+    m.setex.return_value = True
+    m.delete.return_value = True
+    m.keys.return_value = []
+    m.ttl.return_value = -1
+    return m
 
-SAMPLE_ANSWERS = [{"questionId": i, "selectedOption": 2} for i in range(1, 16)]
+mock_redis = _make_redis_mock()
+
+SAMPLE_ANSWERS    = [{"questionId": i, "selectedOption": 2} for i in range(1, 16)]
 AGGRESSIVE_ANSWERS = [{"questionId": i, "selectedOption": 3} for i in range(1, 16)]
 
 
@@ -47,18 +56,51 @@ def override_get_db():
 def setup_db():
     import app.models  # noqa: F401
     Base.metadata.create_all(bind=engine_test)
+    # Her testten önce mock_redis state'ini sıfırla
+    mock_redis.reset_mock()
+    mock_redis.get.return_value = None
+    mock_redis.setex.return_value = True
+    mock_redis.delete.return_value = True
+    mock_redis.keys.return_value = []
     yield
     Base.metadata.drop_all(bind=engine_test)
+
+
+# build_portfolio mock'u için gerçekçi return value
+MOCK_PORTFOLIO_RESULT = {
+    "portfolio_score": 72.5,
+    "expected_volatility": 9.3,
+    "expected_return": 11.2,
+    "explanation": "Balanced portfolio optimized for medium-term horizon.",
+    "allocations": [
+        {
+            "asset_class": "SP500_EQUITY",
+            "target_weight": 40.0,
+            "instruments": [],
+        },
+        {
+            "asset_class": "BIST_EQUITY",
+            "target_weight": 30.0,
+            "instruments": [],
+        },
+        {
+            "asset_class": "CASH_EQUIVALENT",
+            "target_weight": 30.0,
+            "instruments": [],
+        },
+    ],
+}
 
 
 @pytest.fixture
 def client():
     app.dependency_overrides[get_db] = override_get_db
+    mock_build = MagicMock(return_value=MOCK_PORTFOLIO_RESULT)
     with patch("app.routers.auth.get_redis", return_value=mock_redis), \
          patch("app.routers.portfolios.get_redis", return_value=mock_redis), \
          patch("app.core.email.send_verification_email"), \
          patch("app.core.email.send_password_reset_email"), \
-         patch("app.services.portfolio_engine.build_portfolio"):
+         patch("app.services.portfolio_engine.build_portfolio", mock_build):
         with TestClient(app) as c:
             yield c
     app.dependency_overrides.clear()
@@ -157,13 +199,17 @@ class TestUC02Login:
         """RAD UC-02 Main Flow step 5: Refresh token is invalidated after logout."""
         tokens = _register_and_verify(client, "logout@example.com")
         client.post("/api/v1/auth/logout", json={"refreshToken": tokens["refreshToken"]})
+        # Simüle et: token blacklist'te
         mock_redis.get.return_value = b"1"
         resp = client.post("/api/v1/auth/refresh", json={"refreshToken": tokens["refreshToken"]})
         assert resp.status_code == 401
+        # Sonraki testleri bozmamak için sıfırla
         mock_redis.get.return_value = None
 
     def test_FT_09_token_refresh_issues_new_access_token(self, client):
         """SDD AuthRouter /auth/refresh: Valid refresh token produces new access token."""
+        # mock_redis.get = None (blacklist'te yok) → refresh geçerli
+        mock_redis.get.return_value = None
         tokens = _register_and_verify(client, "refresh@example.com")
         resp = client.post("/api/v1/auth/refresh", json={"refreshToken": tokens["refreshToken"]})
         assert resp.status_code == 200
@@ -175,11 +221,9 @@ class TestUC02ForgotPassword:
 
     def test_FT_10_forgot_password_always_returns_204(self, client):
         """Security: Forgot password endpoint never reveals whether email exists."""
-        # Known email
         _register_and_verify(client, "known@example.com")
         r1 = client.post("/api/v1/auth/forgot-password", json={"email": "known@example.com"})
         assert r1.status_code == 204
-        # Unknown email — same response to prevent enumeration
         r2 = client.post("/api/v1/auth/forgot-password", json={"email": "nobody@example.com"})
         assert r2.status_code == 204
 
@@ -193,7 +237,7 @@ class TestUC02ForgotPassword:
 
     def test_FT_12_reset_password_valid_token_updates_password(self, client):
         """Full reset flow: token stored in Redis → password updated → old password fails."""
-        tokens = _register_and_verify(client, "reset@example.com")
+        _register_and_verify(client, "reset@example.com")
 
         db = TestingSessionLocal()
         from app.models.user import User
@@ -202,17 +246,19 @@ class TestUC02ForgotPassword:
         db.close()
 
         reset_token = "valid_reset_token_abc123"
+        # Redis'ten user_id döndür
         mock_redis.get.return_value = user_id.encode()
         resp = client.post("/api/v1/auth/reset-password", json={
             "token": reset_token, "new_password": "brandnewpass456"
         })
         assert resp.status_code == 204
-        # Old password no longer works
+
+        # Eski şifre artık çalışmamalı
+        mock_redis.get.return_value = None
         login_resp = client.post("/api/v1/auth/login", json={
             "email": "reset@example.com", "password": "password123"
         })
         assert login_resp.status_code == 401
-        mock_redis.get.return_value = None
 
 
 class TestUC03Assessment:
@@ -221,12 +267,11 @@ class TestUC03Assessment:
     def test_FT_13_submit_15_answers_returns_profile(self, client):
         """RAD UC-03 Main Flow: 15 answers produce a profile classification."""
         tokens = _register_and_verify(client, "assess@example.com")
-        with patch("app.services.portfolio_engine.build_portfolio"):
-            resp = client.post(
-                "/api/v1/assessments",
-                json={"answers": SAMPLE_ANSWERS},
-                headers=_auth_headers(tokens),
-            )
+        resp = client.post(
+            "/api/v1/assessments",
+            json={"answers": SAMPLE_ANSWERS},
+            headers=_auth_headers(tokens),
+        )
         assert resp.status_code in (200, 201)
         data = resp.json()
         assert data["profileType"] in ("conservative", "balanced", "aggressive")
@@ -268,20 +313,15 @@ class TestUC05Dashboard:
 
 
 class TestUC05PortfolioDelete:
-    """Portfolio delete — new feature"""
+    """Portfolio delete"""
 
-    def test_FT_18_delete_portfolio_returns_204(self, client):
-        """DELETE /portfolios/{id}: Authenticated user can delete own portfolio."""
-        tokens = _register_and_verify(client, "delete@example.com")
-
-        # Create a portfolio record directly in DB
+    def _create_portfolio(self, email: str) -> tuple[dict, str]:
+        """Register user and insert a portfolio directly into DB. Returns (tokens, portfolio_id)."""
         db = TestingSessionLocal()
         from app.models.user import User
         from app.models.portfolio import Portfolio
-        import uuid
-        from datetime import datetime, timezone
 
-        user = db.query(User).filter(User.email == "delete@example.com").first()
+        user = db.query(User).filter(User.email == email).first()
         p = Portfolio(
             id=uuid.uuid4(),
             user_id=user.id,
@@ -290,14 +330,20 @@ class TestUC05PortfolioDelete:
             horizon_type="medium",
             is_current=True,
             generated_at=datetime.now(timezone.utc),
-            portfolio_score=75.0,
+            portfolio_score=75,
             expected_volatility=8.0,
+            expected_return=10.0,
         )
         db.add(p)
         db.commit()
         portfolio_id = str(p.id)
         db.close()
+        return portfolio_id
 
+    def test_FT_18_delete_portfolio_returns_204(self, client):
+        """DELETE /portfolios/{id}: Authenticated user can delete own portfolio."""
+        tokens = _register_and_verify(client, "delete@example.com")
+        portfolio_id = self._create_portfolio("delete@example.com")
         resp = client.delete(f"/api/v1/portfolios/{portfolio_id}", headers=_auth_headers(tokens))
         assert resp.status_code == 204
 
@@ -306,28 +352,7 @@ class TestUC05PortfolioDelete:
         tokens_a = _register_and_verify(client, "usera@example.com")
         tokens_b = _register_and_verify(client, "userb@example.com")
 
-        db = TestingSessionLocal()
-        from app.models.user import User
-        from app.models.portfolio import Portfolio
-        import uuid
-        from datetime import datetime, timezone
-
-        user_a = db.query(User).filter(User.email == "usera@example.com").first()
-        p = Portfolio(
-            id=uuid.uuid4(),
-            user_id=user_a.id,
-            assessment_id=uuid.uuid4(),
-            profile_type="conservative",
-            horizon_type="short",
-            is_current=True,
-            generated_at=datetime.now(timezone.utc),
-            portfolio_score=60.0,
-            expected_volatility=5.0,
-        )
-        db.add(p)
-        db.commit()
-        portfolio_id = str(p.id)
-        db.close()
+        portfolio_id = self._create_portfolio("usera@example.com")
 
         # User B tries to delete User A's portfolio
         resp = client.delete(f"/api/v1/portfolios/{portfolio_id}", headers=_auth_headers(tokens_b))

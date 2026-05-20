@@ -556,12 +556,17 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const { t, language } = useThemeLang()
 
-  const { data: assessments, isLoading: loadingAssessments } = useApi(
+  // assessments ve portfolios state olarak yönetiliyor — silme sonrası reload yok
+  const { data: initialAssessments, isLoading: loadingAssessments } = useApi(
     () => assessmentService.listAll()
   )
   const { data: currentPortfolio, isLoading: loadingCurrent, error, isStale } = useApi(
     () => portfolioService.getLatest()
   )
+
+  // Silme sonrası local state ile dropdown'ı anında güncelle
+  const [localAssessments, setLocalAssessments] = useState<AssessmentListItem[] | null>(null)
+  const assessments = localAssessments ?? initialAssessments
 
   const [selectedPortfolioId, setSelectedPortfolioId] = useState<string | null>(null)
   const [selectedAssessment, setSelectedAssessment]   = useState<AssessmentListItem | null>(null)
@@ -569,24 +574,40 @@ export default function DashboardPage() {
   const [loadingViewed, setLoadingViewed]             = useState(false)
   const [deletingId, setDeletingId]                   = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId]         = useState<string | null>(null)
+  // Silinen current portfolio varsa sayfayı reload etmek gerekir
+  const [needsReload, setNeedsReload]                 = useState(false)
 
   const handleDeletePortfolio = useCallback(async (portfolioId: string) => {
     setDeletingId(portfolioId)
     try {
       await portfolioService.delete(portfolioId)
-      // Reset selection if deleted portfolio was being viewed
+
+      // Dropdown listesini anında güncelle — silinen portfolioyu çıkar
+      const current = localAssessments ?? initialAssessments ?? []
+      const updated = current.filter((a) => a.portfolioId !== portfolioId)
+      setLocalAssessments(updated)
+
+      // Silinen portföy görüntüleniyorsa seçimi sıfırla
       if (selectedPortfolioId === portfolioId) {
-        setSelectedPortfolioId(null); setSelectedAssessment(null); setViewedPortfolio(null)
+        setSelectedPortfolioId(null)
+        setSelectedAssessment(null)
+        setViewedPortfolio(null)
       }
-      // Reload assessments list
-      window.location.reload()
+
+      // Eğer silinen portföy current (index 0) ise sayfayı reload etmek gerekir
+      // çünkü backend'deki yeni current'ı almamız lazım
+      const deletedIsCurrent = (current[0]?.portfolioId === portfolioId)
+      if (deletedIsCurrent) {
+        setNeedsReload(true)
+        window.location.reload()
+      }
     } catch {
       // silently ignore
     } finally {
       setDeletingId(null)
       setDeleteConfirmId(null)
     }
-  }, [selectedPortfolioId])
+  }, [selectedPortfolioId, localAssessments, initialAssessments])
 
   const handleSelectPortfolio = useCallback(async (portfolioId: string, assessmentItem: AssessmentListItem) => {
     if (portfolioId === (currentPortfolio?.portfolioId ?? '')) {
@@ -606,7 +627,7 @@ export default function DashboardPage() {
 
   const isLoading = loadingAssessments || loadingCurrent
 
-  if (isLoading) {
+  if (isLoading || needsReload) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center py-24">
@@ -660,7 +681,7 @@ export default function DashboardPage() {
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {assessments && assessments.length > 0 && (
+            {assessments && assessments.length > 1 && (
               <PortfolioDropdown
                 assessments={assessments}
                 selectedId={dropdownSelected}
