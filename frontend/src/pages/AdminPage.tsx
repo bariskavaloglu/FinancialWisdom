@@ -397,6 +397,7 @@ function OverridesTab() {
 // ─── Sistem Konfigürasyonu Tab'ı ─────────────────────────────────────────────
 
 function ConfigTab() {
+  const { t } = useThemeLang()
   const { data, isLoading, error, refetch } = useApi<SystemConfig>(() => adminService.getConfig())
   const [form, setForm] = useState<Partial<SystemConfig> | null>(null)
   const [saved, setSaved] = useState(false)

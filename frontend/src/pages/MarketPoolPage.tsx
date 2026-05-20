@@ -402,7 +402,7 @@ function TickerDrawer({ ticker, period, onClose }: {
   period: string
   onClose: () => void
 }) {
-  const { theme } = useThemeLang()
+  const { theme, t } = useThemeLang()
   const isDark = theme === 'dark'
   const { data, isLoading } = useApi(
     () => ticker ? api.get(`/pool/${ticker}?period=${period}`).then(r => r.data) : Promise.resolve(null),
