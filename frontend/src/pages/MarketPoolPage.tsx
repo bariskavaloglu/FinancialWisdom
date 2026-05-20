@@ -167,7 +167,7 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
             contentStyle={tipStyle}
             formatter={(v: number, name: string) => [v.toFixed(1), name.charAt(0).toLocaleUpperCase('en-US') + name.slice(1)]}
           />
-          <Bar dataKey="score" radius={[4, 4, 0, 0]} {name={t("pool.compositeName")}>
+          <Bar dataKey="score" name={t("pool.compositeName")} radius={[4, 4, 0, 0]}>
             {data.map((d, i) => {
               const cfg = ASSET_CONFIG[d.assetClass]
               return <Cell key={i} fill={isDark ? cfg.darkColor : cfg.color} />
