@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/Button'
 import { Alert, Spinner } from '@/components/ui/index'
-import { QUESTIONS, CATEGORIES, computeCompositeScore } from '@/components/questionnaire/questions'
+import {
+  QUESTIONS, CATEGORIES, CATEGORIES_TR,
+  computeCompositeScore,
+  getQuestionText, getQuestionOptions, getCategoryLabel, getHelpText,
+} from '@/components/questionnaire/questions'
 import { useSessionStorage } from '@/hooks/useSessionStorage'
 import { assessmentService } from '@/services'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
@@ -12,7 +16,7 @@ import type { QuestionnaireAnswer } from '@/types'
 const QUESTIONS_PER_CATEGORY = 3 // 15 questions / 5 categories
 
 export default function QuestionnairePage() {
-  const { t } = useThemeLang()
+  const { t, language } = useThemeLang()
   const navigate = useNavigate()
 
   // UC-03: Preserve partial answers on browser refresh (RAD requirement)
@@ -33,6 +37,8 @@ export default function QuestionnairePage() {
   const categoryStep = question.categoryIndex // 0–4
   const questionInCategory = currentQ - categoryStep * QUESTIONS_PER_CATEGORY + 1
   const progress = ((currentQ) / QUESTIONS.length) * 100
+
+  const categories = language === 'tr' ? CATEGORIES_TR : CATEGORIES
 
   const selectOption = (optionIndex: number) => {
     const updated = answers.filter((a) => a.questionId !== question.id)
@@ -73,6 +79,23 @@ export default function QuestionnairePage() {
   const hasAnsweredCurrent = !!currentAnswer
   const allAnswered = answers.length === QUESTIONS.length
 
+  const questionText = getQuestionText(question, language)
+  const options = getQuestionOptions(question, language)
+  const helpText = getHelpText(question, language)
+  const categoryLabel = getCategoryLabel(question.category, language)
+
+  // i18n strings
+  const lblQuestion      = language === 'tr' ? 'Soru' : 'Question'
+  const lblOf            = language === 'tr' ? '/'    : 'of'
+  const lblAnswered      = language === 'tr' ? 'yanıtlandı' : 'answered'
+  const lblWhyAsked      = language === 'tr' ? 'Bu soru neden soruluyor?' : 'Why is this question asked?'
+  const lblSelected      = language === 'tr' ? 'Seçildi' : 'Selected'
+  const lblPrev          = language === 'tr' ? '← Önceki' : '← Previous'
+  const lblNext          = language === 'tr' ? 'İleri →' : 'Next →'
+  const lblCalc          = language === 'tr' ? 'Profili Hesapla →' : 'Calculate Profile →'
+  const lblCalculating   = language === 'tr' ? 'Profiliniz hesaplanıyor' : 'Calculating your profile'
+  const lblBuilding      = language === 'tr' ? 'Portföyünüz oluşturuluyor…' : 'Building your portfolio…'
+
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto animate-fade-in">
@@ -80,7 +103,7 @@ export default function QuestionnairePage() {
         {/* ── Step progress bar ── */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            {CATEGORIES.map((cat, i) => (
+            {categories.map((cat, i) => (
               <div key={cat} className="flex flex-col items-center gap-1.5 flex-1">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300 ${
                   i < categoryStep
@@ -111,7 +134,7 @@ export default function QuestionnairePage() {
             />
           </div>
           <p className="text-xs text-stone-400 mt-2 text-right">
-            Question {currentQ + 1} of {QUESTIONS.length}
+            {lblQuestion} {currentQ + 1} {lblOf} {QUESTIONS.length}
           </p>
         </div>
 
@@ -119,17 +142,17 @@ export default function QuestionnairePage() {
         <div className="card animate-slide-up" key={currentQ}>
           {/* Category label */}
           <p className="text-xs font-medium text-stone-400 uppercase tracking-widest mb-2">
-            {question.category} · Question {questionInCategory} of {QUESTIONS_PER_CATEGORY}
+            {categoryLabel} · {lblQuestion} {questionInCategory} {lblOf} {QUESTIONS_PER_CATEGORY}
           </p>
 
           {/* Question text */}
           <h2 className="text-xl font-medium text-stone-900 dark:text-stone-100 leading-snug mb-6">
-            {question.text}
+            {questionText}
           </h2>
 
           {/* Options */}
           <div className="space-y-3 mb-6">
-            {question.options.map((option, i) => {
+            {options.map((option, i) => {
               const isSelected = currentAnswer?.selectedOption === i
               return (
                 <button
@@ -150,7 +173,7 @@ export default function QuestionnairePage() {
                     <span className="text-sm leading-snug">{option}</span>
                     {isSelected && (
                       <span className="ml-auto text-xs font-medium text-stone-900 dark:text-stone-100 bg-stone-200 dark:bg-stone-600 px-2 py-0.5 rounded-full">
-                        Selected
+                        {lblSelected}
                       </span>
                     )}
                   </div>
@@ -160,17 +183,17 @@ export default function QuestionnairePage() {
           </div>
 
           {/* Help tooltip */}
-          {question.helpText && (
+          {helpText && (
             <div className="mb-4">
               <button
                 className="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
                 onClick={() => setShowHelp(!showHelp)}
               >
-                <span>💡</span> Why is this question asked?
+                <span>💡</span> {lblWhyAsked}
               </button>
               {showHelp && (
                 <div className="mt-2 px-4 py-3 bg-stone-50 border border-stone-200 rounded-lg text-xs text-stone-500 leading-relaxed animate-fade-in">
-                  {question.helpText}
+                  {helpText}
                 </div>
               )}
             </div>
@@ -183,11 +206,11 @@ export default function QuestionnairePage() {
               onClick={goPrev}
               disabled={currentQ === 0}
             >
-              ← Previous
+              {lblPrev}
             </Button>
 
             <span className="text-xs text-stone-300 font-mono">
-              {answers.length} of {QUESTIONS.length} answered
+              {answers.length} {lblOf} {QUESTIONS.length} {lblAnswered}
             </span>
 
             {isLastQuestion ? (
@@ -196,14 +219,14 @@ export default function QuestionnairePage() {
                 disabled={!allAnswered || isSubmitting}
                 isLoading={isSubmitting}
               >
-                Calculate Profile →
+                {lblCalc}
               </Button>
             ) : (
               <Button
                 onClick={goNext}
                 disabled={!hasAnsweredCurrent}
               >
-                Next →
+                {lblNext}
               </Button>
             )}
           </div>
@@ -221,8 +244,8 @@ export default function QuestionnairePage() {
             <div className="card text-center space-y-4 w-64">
               <Spinner size="lg" />
               <div>
-                <p className="text-stone-900 font-medium">Profiliniz hesaplanıyor</p>
-                <p className="text-stone-500 text-sm mt-1">Building your portfolio…</p>
+                <p className="text-stone-900 font-medium">{lblCalculating}</p>
+                <p className="text-stone-500 text-sm mt-1">{lblBuilding}</p>
               </div>
             </div>
           </div>

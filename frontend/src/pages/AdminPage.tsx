@@ -13,12 +13,20 @@ const ASSET_CLASSES: AssetClass[] = [
   'BIST_EQUITY', 'SP500_EQUITY', 'COMMODITY', 'CRYPTOCURRENCY', 'CASH_EQUIVALENT',
 ]
 
-const ASSET_LABELS: Record<AssetClass, string> = {
-  BIST_EQUITY:     'BIST Hisseleri',
-  SP500_EQUITY:    'S&P 500 ETF',
-  COMMODITY:       'Emtialar',
-  CRYPTOCURRENCY:  'Kripto Para',
-  CASH_EQUIVALENT: 'Nakit / Para Piyasası',
+function getAssetLabels(language: string): Record<AssetClass, string> {
+  return language === 'tr' ? {
+    BIST_EQUITY:     'BIST Hisseleri',
+    SP500_EQUITY:    'S&P 500 ETF',
+    COMMODITY:       'Emtialar',
+    CRYPTOCURRENCY:  'Kripto Para',
+    CASH_EQUIVALENT: 'Nakit / Para Piyasası',
+  } : {
+    BIST_EQUITY:     'BIST Equities',
+    SP500_EQUITY:    'S&P 500 ETF',
+    COMMODITY:       'Commodities',
+    CRYPTOCURRENCY:  'Cryptocurrency',
+    CASH_EQUIVALENT: 'Cash / Money Market',
+  }
 }
 
 const ASSET_COLORS: Record<AssetClass, string> = {
@@ -63,19 +71,19 @@ export default function AdminPage() {
         {/* Başlık */}
         <div>
           <h1 className="font-display text-2xl font-medium text-stone-900 dark:text-stone-100 mb-1">
-            Admin Paneli
+            {t('admin.title')}
           </h1>
           <p className="text-stone-500 dark:text-stone-400 text-sm">
-            Kullanıcı portföy kısıtları, sistem konfigürasyonu ve önbellek yönetimi
+            {t('admin.subtitle')}
           </p>
         </div>
 
         {/* Tab bar */}
         <div className="flex gap-1 p-1 bg-stone-100 dark:bg-stone-800/50 rounded-xl w-fit">
           {([
-            { key: 'overrides', label: '👥 Kullanıcı Kısıtları' },
-            { key: 'config',    label: '⚙️ Sistem Konfigürasyonu' },
-            { key: 'cache',     label: '🗄️ Önbellek' },
+            { key: 'overrides', label: t('admin.tabOverrides') },
+            { key: 'config',    label: t('admin.tabConfig') },
+            { key: 'cache',     label: t('admin.tabCache') },
           ] as { key: Tab; label: string }[]).map(({ key, label }) => (
             <button
               key={key}
@@ -102,6 +110,8 @@ export default function AdminPage() {
 // ─── Kısıtlar Tab'ı ───────────────────────────────────────────────────────────
 
 function OverridesTab() {
+  const { t, language } = useThemeLang()
+  const ASSET_LABELS = getAssetLabels(language)
   const { data: users, isLoading, error, refetch } = useApi<UserWithOverrides[]>(
     () => adminService.getUsers()
   )
@@ -134,17 +144,17 @@ function OverridesTab() {
 
   const handleSubmit = () => {
     setFormError(null)
-    if (!form.userId) { setFormError('Kullanıcı seçin.'); return }
+    if (!form.userId) { setFormError(t('admin.userSelect')); return }
     if (!form.reason.trim() || form.reason.length < 5) {
-      setFormError('Sebep en az 5 karakter olmalı.'); return
+      setFormError(language === 'tr' ? 'Sebep en az 5 karakter olmalı.' : 'Reason must be at least 5 characters.'); return
     }
     const min = form.minWeight !== '' ? parseFloat(form.minWeight) : null
     const max = form.maxWeight !== '' ? parseFloat(form.maxWeight) : null
     if (min === null && max === null) {
-      setFormError('En az bir kısıt (min veya max) girilmeli.'); return
+      setFormError(language === 'tr' ? 'En az bir kısıt (min veya max) girilmeli.' : 'At least one constraint (min or max) is required.'); return
     }
     if (min !== null && max !== null && min > max) {
-      setFormError('Min değer, max değerden büyük olamaz.'); return
+      setFormError(language === 'tr' ? 'Min değer, max değerden büyük olamaz.' : 'Min value cannot be greater than max value.'); return
     }
     createOverride({
       user_id: form.userId,
@@ -175,13 +185,13 @@ function OverridesTab() {
 
   return (
     <div className="space-y-6">
-      {formSuccess && <Alert variant="success">Override başarıyla oluşturuldu.</Alert>}
+      {formSuccess && <Alert variant="success">language === 'tr' ? 'Kısıt başarıyla oluşturuldu.' : 'Override created successfully.'</Alert>}
 
       {/* Aktif override'lar özet */}
       {allOverrides.length > 0 && (
         <div className="card space-y-3">
           <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest">
-            Aktif Kısıtlar ({allOverrides.length})
+            {t('admin.newOverride').replace('{t('admin.newOverride')}','').trim()} ({allOverrides.length})
           </h3>
           <div className="divide-y divide-stone-100 dark:divide-stone-800">
             {allOverrides.map(ov => (
@@ -204,13 +214,13 @@ function OverridesTab() {
                 </div>
                 <button
                   onClick={() => {
-                    if (window.confirm('Bu kısıtı kaldırmak istediğinizden emin misiniz?')) {
+                    if (window.confirm(t('admin.confirmRemove'))) {
                       deleteOverride(ov.id)
                     }
                   }}
                   className="shrink-0 text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
-                  Kaldır
+                  {t('common.delete')}
                 </button>
               </div>
             ))}
@@ -222,14 +232,14 @@ function OverridesTab() {
       <div className="card space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest">
-            Yeni Portföy Kısıtı
+            {t('admin.newOverride')}
           </h3>
           {!showForm && (
             <Button
               variant="secondary"
               onClick={() => { setShowForm(true); setFormError(null) }}
             >
-              + Kısıt Ekle
+              {t('admin.addOverride')}
             </Button>
           )}
         </div>
@@ -240,17 +250,17 @@ function OverridesTab() {
 
             {/* Kullanıcı arama */}
             <div>
-              <label className="label">Kullanıcı Seç</label>
+              <label className="label">{t('admin.selectUser')}</label>
               <input
                 type="text"
                 className="input mb-2"
-                placeholder="E-posta veya isimle ara…"
+                placeholder={language === 'tr' ? 'E-posta veya isimle ara…' : 'Search by email or name…'}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
               <div className="max-h-48 overflow-y-auto rounded-lg border border-stone-200 dark:border-stone-700 divide-y divide-stone-100 dark:divide-stone-800">
                 {investors.length === 0 && (
-                  <p className="text-sm text-stone-400 dark:text-stone-500 text-center py-4">Kullanıcı bulunamadı</p>
+                  <p className="text-sm text-stone-400 dark:text-stone-500 text-center py-4">{t('admin.userNotFound')}</p>
                 )}
                 {investors.map(u => (
                   <button
@@ -269,7 +279,7 @@ function OverridesTab() {
                     <span className="text-stone-400 dark:text-stone-500 ml-2 text-xs">{u.email}</span>
                     {u.overrideCount > 0 && (
                       <span className="ml-2 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full">
-                        {u.overrideCount} aktif kısıt
+                        {u.overrideCount} {t('admin.activeConstraints')}
                       </span>
                     )}
                   </button>
@@ -279,7 +289,7 @@ function OverridesTab() {
 
             {/* Varlık sınıfı */}
             <div>
-              <label className="label">Varlık Sınıfı</label>
+              <label className="label">{t('admin.assetClass')}</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {ASSET_CLASSES.map(ac => (
                   <button
@@ -304,31 +314,31 @@ function OverridesTab() {
                 <input
                   type="number" min="0" max="100" step="1"
                   className="input"
-                  placeholder="ör: 10"
+                  placeholder={language === 'tr' ? 'ör: 10' : 'e.g. 10'}
                   value={form.minWeight}
                   onChange={e => setForm(f => ({ ...f, minWeight: e.target.value }))}
                 />
-                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">Portföyde en az bu kadar yer alacak</p>
+                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">{t('admin.minWeightDesc')}</p>
               </div>
               <div>
                 <label className="label">Max % <span className="text-stone-400 font-normal">(opsiyonel)</span></label>
                 <input
                   type="number" min="0" max="100" step="1"
                   className="input"
-                  placeholder="ör: 5"
+                  placeholder={language === 'tr' ? 'ör: 5' : 'e.g. 5'}
                   value={form.maxWeight}
                   onChange={e => setForm(f => ({ ...f, maxWeight: e.target.value }))}
                 />
-                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">Portföyde en fazla bu kadar yer alacak</p>
+                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">{t('admin.maxWeightDesc')}</p>
               </div>
             </div>
 
             {/* Sebep */}
             <div>
-              <label className="label">Sebep <span className="text-red-500">*</span></label>
+              <label className="label">{t('admin.reason')} <span className="text-red-500">*</span></label>
               <textarea
                 className="input min-h-[80px] resize-none"
-                placeholder="Bu kısıtı ekleme sebebinizi açıklayın (audit kaydı için)…"
+                placeholder={t('admin.reasonPlaceholder')}
                 value={form.reason}
                 onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
               />
@@ -338,8 +348,7 @@ function OverridesTab() {
             <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
               <span className="text-blue-500 dark:text-blue-400 text-sm shrink-0">ℹ️</span>
               <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                Bu kısıt portföy algoritmasını değiştirmez. Kullanıcı bir sonraki anket doldurduğunda
-                algoritma normal çalışır ve sonuç bu kısıt bandına sıkıştırılır.
+                {t('admin.overrideNote')}
               </p>
             </div>
 
@@ -348,10 +357,10 @@ function OverridesTab() {
                 variant="secondary"
                 onClick={() => { setShowForm(false); setForm(emptyForm()); setSearchQuery('') }}
               >
-                İptal
+                {t('profile.page.cancel')}
               </Button>
               <Button onClick={handleSubmit} isLoading={creating}>
-                Kısıtı Kaydet
+                {t('admin.saveOverride')}
               </Button>
             </div>
           </div>
@@ -359,7 +368,7 @@ function OverridesTab() {
 
         {!showForm && allOverrides.length === 0 && (
           <p className="text-sm text-stone-400 dark:text-stone-500 text-center py-6">
-            Henüz aktif bir portföy kısıtı yok.
+            {t('admin.noOverrides')}
           </p>
         )}
       </div>
@@ -367,7 +376,7 @@ function OverridesTab() {
       {/* Kullanıcı listesi özet */}
       <div className="card">
         <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
-          Tüm Kullanıcılar ({(users ?? []).length})
+          {`${t('admin.allUsers').replace('{n}', String((users ?? []).length))}`}
         </h3>
         <div className="divide-y divide-stone-100 dark:divide-stone-800">
           {(users ?? []).map(u => (
@@ -383,7 +392,7 @@ function OverridesTab() {
               </div>
               {u.overrideCount > 0 && (
                 <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full">
-                  {u.overrideCount} kısıt
+                  {u.overrideCount} {t('admin.activeConstraints')}
                 </span>
               )}
             </div>
@@ -397,7 +406,7 @@ function OverridesTab() {
 // ─── Sistem Konfigürasyonu Tab'ı ─────────────────────────────────────────────
 
 function ConfigTab() {
-  const { t } = useThemeLang()
+  const { t, language } = useThemeLang()
   const { data, isLoading, error, refetch } = useApi<SystemConfig>(() => adminService.getConfig())
   const [form, setForm] = useState<Partial<SystemConfig> | null>(null)
   const [saved, setSaved] = useState(false)
@@ -410,14 +419,14 @@ function ConfigTab() {
   )
 
   if (isLoading) return <div className="flex justify-center py-16"><Spinner size="lg" /></div>
-  if (error || !form) return <Alert variant="error">{error ?? 'Konfigürasyon yüklenemedi.'}</Alert>
+  if (error || !form) return <Alert variant="error">{error ?? (language === 'tr' ? 'Konfigürasyon yüklenemedi.' : 'Failed to load config.')}</Alert>
 
   const fw = form.factorWeights ?? { momentum: 0.35, value: 0.20, quality: 0.20, lowVolatility: 0.25 }
   const fwSum = Object.values(fw).reduce((s, v) => s + v, 0)
 
   return (
     <div className="space-y-6">
-      {saved && <Alert variant="success">Konfigürasyon kaydedildi.</Alert>}
+      {saved && <Alert variant="success">language === 'tr' ? 'Konfigürasyon kaydedildi.' : 'Configuration saved.'</Alert>}
       {saveError && <Alert variant="error">{saveError}</Alert>}
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -425,14 +434,14 @@ function ConfigTab() {
         <div className="card space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest">
-              Factor Weights (Katman 2)
+              {language === 'tr' ? 'Factor Weights (Katman 2)' : 'Factor Weights (Layer 2)'}
             </h3>
             <span className={`text-xs font-mono px-2 py-0.5 rounded ${
               Math.abs(fwSum - 1) < 0.01
                 ? 'text-green-600 dark:text-green-400 bg-green-500/10'
                 : 'text-red-600 dark:text-red-400 bg-red-500/10'
             }`}>
-              Toplam: {fwSum.toFixed(2)} {Math.abs(fwSum - 1) < 0.01 ? '✓' : '✗'}
+              {language === 'tr' ? 'Toplam' : 'Total'}: {fwSum.toFixed(2)} {Math.abs(fwSum - 1) < 0.01 ? '✓' : '✗'}
             </span>
           </div>
           {(['momentum', 'value', 'quality', 'lowVolatility'] as const).map((key) => {
@@ -462,11 +471,11 @@ function ConfigTab() {
         {/* Veri kaynağı */}
         <div className="card space-y-4">
           <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest">
-            Veri Kaynağı
+            {language === 'tr' ? 'Veri Kaynağı' : 'Data Source'}
           </h3>
           {([
-            { label: 'yfinance Önbellek TTL (dakika)', key: 'yfinanceCacheTtlMinutes' as const, min: 1, max: 60 },
-            { label: 'Min. Veri Tamlığı', key: 'minDataCompleteness' as const, min: 0, max: 1 },
+            { label: language === 'tr' ? 'yfinance Önbellek TTL (dakika)' : 'yfinance Cache TTL (minutes)', key: 'yfinanceCacheTtlMinutes' as const, min: 1, max: 60 },
+            { label: language === 'tr' ? 'Min. Veri Tamlığı' : 'Min. Data Completeness', key: 'minDataCompleteness' as const, min: 0, max: 1 },
             { label: t('admin.maxInstruments'), key: 'maxInstrumentsPerClass' as const, min: 1, max: 20 },
           ]).map(({ label, key, min, max }) => (
             <div key={key} className="space-y-1.5">
@@ -481,8 +490,8 @@ function ConfigTab() {
           ))}
           <div className="space-y-2">
             {([
-              { label: 'Redis önbelleğini etkinleştir', key: 'enableRedisCache' as const },
-              { label: 'API başarısız olunca fallback kullan', key: 'useFallbackOnApiFailure' as const },
+              { label: language === 'tr' ? 'Redis önbelleğini etkinleştir' : 'Enable Redis cache', key: 'enableRedisCache' as const },
+              { label: language === 'tr' ? 'API başarısız olunca fallback kullan' : 'Use fallback on API failure', key: 'useFallbackOnApiFailure' as const },
             ]).map(({ label, key }) => (
               <label key={key} className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -499,8 +508,8 @@ function ConfigTab() {
       </div>
 
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={() => setForm(data!)}>İptal</Button>
-        <Button onClick={() => save(form!)} isLoading={saving}>Kaydet</Button>
+        <Button variant="secondary" onClick={() => setForm(data!)}>{t('profile.page.cancel')}</Button>
+        <Button onClick={() => save(form!)} isLoading={saving}>{t('admin.save')}</Button>
       </div>
     </div>
   )
@@ -509,6 +518,7 @@ function ConfigTab() {
 // ─── Önbellek Tab'ı ───────────────────────────────────────────────────────────
 
 function CacheTab() {
+  const { t: _t, language } = useThemeLang()
   const { data, isLoading, error, refetch } = useApi(() => adminService.getCacheKeys())
   const [flushed, setFlushed] = useState(false)
 
@@ -531,26 +541,26 @@ function CacheTab() {
 
   return (
     <div className="space-y-6">
-      {flushed && <Alert variant="success">Önbellek temizlendi.</Alert>}
+      {flushed && <Alert variant="success">language === 'tr' ? 'Önbellek temizlendi.' : 'Cache cleared.'</Alert>}
 
       <div className="card space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest">
-              Redis Önbelleği
+              {language === 'tr' ? 'Redis Önbelleği' : 'Redis Cache'}
             </h3>
             <p className="text-2xl font-display font-medium text-stone-900 dark:text-stone-100 mt-1">
-              {totalKeys} <span className="text-base font-sans text-stone-500 dark:text-stone-400">anahtar</span>
+              {totalKeys} <span className="text-base font-sans text-stone-500 dark:text-stone-400">{language === 'tr' ? 'anahtar' : 'keys'}</span>
             </p>
           </div>
           <Button
             variant="secondary"
             onClick={() => {
-              if (confirm('Tüm önbelleği temizlemek istediğinizden emin misiniz?')) flush(undefined)
+              if (confirm(language === 'tr' ? 'Tüm önbelleği temizlemek istediğinizden emin misiniz?' : 'Are you sure you want to flush the entire cache?')) flush(undefined)
             }}
             isLoading={flushing}
           >
-            Önbelleği Temizle
+            language === 'tr' ? 'Önbelleği Temizle' : 'Flush Cache'
           </Button>
         </div>
 
@@ -559,8 +569,8 @@ function CacheTab() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-stone-400 dark:text-stone-500 border-b border-stone-100 dark:border-stone-800">
-                  <th className="text-left pb-2 font-medium">Anahtar</th>
-                  <th className="text-right pb-2 font-medium">TTL (sn)</th>
+                  <th className="text-left pb-2 font-medium">{language === 'tr' ? 'Anahtar' : 'Key'}</th>
+                  <th className="text-right pb-2 font-medium">TTL ({language === 'tr' ? 'sn' : 's'})</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-50 dark:divide-stone-800/50">
@@ -584,7 +594,7 @@ function CacheTab() {
         onClick={() => refetch()}
         className="text-sm text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
       >
-        ↻ Yenile
+        language === 'tr' ? '↻ Yenile' : '↻ Refresh'
       </button>
     </div>
   )

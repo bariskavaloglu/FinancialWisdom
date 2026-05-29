@@ -167,7 +167,7 @@ function PortfolioDropdown({
                           onClick={(e) => { e.stopPropagation(); onDeleteConfirm(null) }}
                           className="text-[10px] px-2 py-1 rounded bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors"
                         >
-                          No
+                          {t('common.no')}
                         </button>
                       </div>
                     ) : (
@@ -557,10 +557,10 @@ export default function DashboardPage() {
   const { t, language } = useThemeLang()
 
   // assessments ve portfolios state olarak yönetiliyor — silme sonrası reload yok
-  const { data: initialAssessments, isLoading: loadingAssessments } = useApi(
+  const { data: initialAssessments, isLoading: loadingAssessments, refetch: refetchAssessments } = useApi(
     () => assessmentService.listAll()
   )
-  const { data: currentPortfolio, isLoading: loadingCurrent, error, isStale } = useApi(
+  const { data: currentPortfolio, isLoading: loadingCurrent, error, isStale, refetch: refetchCurrent } = useApi(
     () => portfolioService.getLatest()
   )
 
@@ -594,12 +594,15 @@ export default function DashboardPage() {
         setViewedPortfolio(null)
       }
 
-      // Eğer silinen portföy current (index 0) ise sayfayı reload etmek gerekir
-      // çünkü backend'deki yeni current'ı almamız lazım
+      // If the deleted portfolio was the current one (index 0), reload to get new current from backend
       const deletedIsCurrent = (current[0]?.portfolioId === portfolioId)
       if (deletedIsCurrent) {
         setNeedsReload(true)
         window.location.reload()
+      } else {
+        // For non-current deletion, also sync backend state so stale data is gone
+        refetchAssessments()
+        refetchCurrent()
       }
     } catch {
       // silently ignore
@@ -607,7 +610,7 @@ export default function DashboardPage() {
       setDeletingId(null)
       setDeleteConfirmId(null)
     }
-  }, [selectedPortfolioId, localAssessments, initialAssessments])
+  }, [selectedPortfolioId, localAssessments, initialAssessments, refetchAssessments, refetchCurrent])
 
   const handleSelectPortfolio = useCallback(async (portfolioId: string, assessmentItem: AssessmentListItem) => {
     if (portfolioId === (currentPortfolio?.portfolioId ?? '')) {
