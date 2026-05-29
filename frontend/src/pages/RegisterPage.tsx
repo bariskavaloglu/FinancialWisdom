@@ -8,10 +8,10 @@ import { Alert } from '@/components/ui/index'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
 
 export default function RegisterPage() {
-  useEffect(() => { document.title = 'Register | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('page.register')} | Financial Wisdom` }, [language, t])
 
   const { register, isLoading, error, clearError, emailConfirmationPending, pendingEmail, resendVerification } = useAuth()
-  const { t } = useThemeLang()
+  const { t, language} = useThemeLang()
   const navigate = useNavigate()
   const [form, setForm] = useState({ fullName: '', email: '', password: '', confirmPassword: '', acceptTerms: false })
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})

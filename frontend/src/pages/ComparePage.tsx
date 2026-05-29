@@ -22,7 +22,7 @@ function PortfolioCard({
   label:     string
   accentColor: string
 }) {
-  const { t } = useThemeLang()
+  const { t, language} = useThemeLang()
 
   const allInst    = portfolio.allocations.flatMap((a) => a.instruments ?? [])
   const totalInst  = allInst.length
@@ -129,7 +129,7 @@ function WinnerBadge({ winner, label }: { winner: 'A' | 'B' | 'tie'; label: stri
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ComparePage() {
-  useEffect(() => { document.title = 'Scenario Comparison | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('page.compare')} | Financial Wisdom` }, [language, t])
 
   const { t, theme, language } = useThemeLang()
   const tooltipStyle = {

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
 
 export default function NotFoundPage() {
-  useEffect(() => { document.title = 'Page Not Found | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('page.notFound')} | Financial Wisdom` }, [language, t])
 
   const navigate = useNavigate()
   const { language } = useThemeLang()

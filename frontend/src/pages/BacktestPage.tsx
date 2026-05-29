@@ -159,7 +159,7 @@ function ChartTooltip({ active, payload, label }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function BacktestPage() {
-  useEffect(() => { document.title = 'Portfolio Validation | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('page.backtest')} | Financial Wisdom` }, [language, t])
 
   const navigate    = useNavigate()
   const { theme, t, language }   = useThemeLang()

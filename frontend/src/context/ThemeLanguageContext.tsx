@@ -52,6 +52,13 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.howItWorks':    'How It Works',
     'nav.login':         'Login',
     'nav.signup':        'Sign Up Free',
+    'page.questionnaire': 'Risk Assessment',
+    'page.compare':       'Scenario Comparison',
+    'page.backtest':      'Portfolio Validation',
+    'page.register':      'Register',
+    'page.profileResult': 'Your Profile',
+    'page.notFound':      'Page Not Found',
+    'page.assetDetail':   'Asset Detail',
     'nav.logout':        'Logout',
 
     // Dashboard
@@ -425,6 +432,13 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.about':         'Hakkında',
     'nav.howItWorks':    'Nasıl Çalışır',
     'nav.login':         'Giriş Yap',
+    'page.questionnaire': 'Risk Değerlendirmesi',
+    'page.compare':       'Senaryo Karşılaştırma',
+    'page.backtest':      'Portföy Doğrulama',
+    'page.register':      'Kayıt Ol',
+    'page.profileResult': 'Profiliniz',
+    'page.notFound':      'Sayfa Bulunamadı',
+    'page.assetDetail':   'Varlık Detayı',
     'nav.signup':        'Ücretsiz Kayıt',
     'nav.logout':        'Çıkış',
 

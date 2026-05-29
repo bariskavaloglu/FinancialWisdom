@@ -553,7 +553,7 @@ function FactorScoreChart({ portfolio }: { portfolio: Portfolio }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  useEffect(() => { document.title = 'Dashboard | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('nav.dashboard')} | Financial Wisdom` }, [language, t])
 
   const navigate = useNavigate()
   const { t, language } = useThemeLang()

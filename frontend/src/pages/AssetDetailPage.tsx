@@ -12,7 +12,7 @@ const RANGES = ['1M', '3M', '1Y'] as const
 type Range = typeof RANGES[number]
 
 export default function AssetDetailPage() {
-  useEffect(() => { document.title = 'Asset Detail | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('page.assetDetail')} | Financial Wisdom` }, [language, t])
 
   const { ticker: rawTicker } = useParams<{ ticker: string }>()
   const ticker = rawTicker ? decodeURIComponent(rawTicker) : undefined

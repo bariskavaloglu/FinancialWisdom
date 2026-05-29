@@ -7,10 +7,10 @@ import { useThemeLang } from '@/context/ThemeLanguageContext'
 import type { AssessmentResult } from '@/types'
 
 export default function ProfileResultPage() {
-  useEffect(() => { document.title = 'Your Profile | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('page.profileResult')} | Financial Wisdom` }, [language, t])
 
   const navigate = useNavigate()
-  const { t } = useThemeLang()
+  const { t, language} = useThemeLang()
   const location = useLocation()
   const result = (location.state as { result?: AssessmentResult })?.result
 

@@ -8,10 +8,10 @@ import { Alert } from '@/components/ui/index'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
 
 export default function LoginPage() {
-  useEffect(() => { document.title = 'Login | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('nav.login')} | Financial Wisdom` }, [language, t])
 
   const { login, isLoading, error, clearError } = useAuth()
-  const { t } = useThemeLang()
+  const { t, language} = useThemeLang()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string })?.from ?? '/dashboard'

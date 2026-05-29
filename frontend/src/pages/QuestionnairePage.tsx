@@ -16,7 +16,7 @@ import type { QuestionnaireAnswer } from '@/types'
 const QUESTIONS_PER_CATEGORY = 3 // 15 questions / 5 categories
 
 export default function QuestionnairePage() {
-  useEffect(() => { document.title = 'Risk Assessment | Financial Wisdom' }, [])
+  useEffect(() => { document.title = `${t('page.questionnaire')} | Financial Wisdom` }, [language, t])
 
   const { t, language } = useThemeLang()
   const navigate = useNavigate()
