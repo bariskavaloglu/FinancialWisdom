@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import {useState, useMemo, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Spinner } from '@/components/ui/index'
@@ -578,6 +578,8 @@ function TickerDrawer({ ticker, period, onClose }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function MarketPoolPage() {
+  useEffect(() => { document.title = 'Market Pool | Financial Wisdom' }, [])
+
   const [period, setPeriod]             = useState('1y')
   const [filterClass, setFilterClass]   = useState<AssetClass | 'ALL'>('ALL')
   const [search, setSearch]             = useState('')

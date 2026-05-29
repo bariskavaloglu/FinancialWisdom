@@ -12,6 +12,8 @@ const RANGES = ['1M', '3M', '1Y'] as const
 type Range = typeof RANGES[number]
 
 export default function AssetDetailPage() {
+  useEffect(() => { document.title = 'Asset Detail | Financial Wisdom' }, [])
+
   const { ticker: rawTicker } = useParams<{ ticker: string }>()
   const ticker = rawTicker ? decodeURIComponent(rawTicker) : undefined
   const navigate = useNavigate()

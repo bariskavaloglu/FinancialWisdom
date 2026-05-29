@@ -5,16 +5,22 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ error, className = '', ...props }, ref) => (
-    <div className="w-full">
-      <input
-        ref={ref}
-        className={`input ${error ? 'border-red-400 focus:border-red-500' : ''} ${className}`}
-        {...props}
-      />
-      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
-    </div>
-  )
+  ({ error, className = '', id, ...props }, ref) => {
+    const errorId = id ? `${id}-error` : undefined
+    return (
+      <div className="w-full">
+        <input
+          ref={ref}
+          id={id}
+          aria-invalid={!!error}
+          aria-describedby={error && errorId ? errorId : undefined}
+          className={`input ${error ? 'border-red-400 focus:border-red-500' : ''} ${className}`}
+          {...props}
+        />
+        {error && <p id={errorId} role="alert" className="mt-1.5 text-xs text-red-600">{error}</p>}
+      </div>
+    )
+  }
 )
 Input.displayName = 'Input'
 

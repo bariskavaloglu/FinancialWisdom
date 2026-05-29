@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {useState, useEffect} from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/Button'
 import { Disclaimer, Spinner, Alert } from '@/components/ui/index'
@@ -129,6 +129,8 @@ function WinnerBadge({ winner, label }: { winner: 'A' | 'B' | 'tie'; label: stri
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ComparePage() {
+  useEffect(() => { document.title = 'Scenario Comparison | Financial Wisdom' }, [])
+
   const { t, theme, language } = useThemeLang()
   const tooltipStyle = {
     background: theme === 'dark' ? '#1c1917' : '#fff',

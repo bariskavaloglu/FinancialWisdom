@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/Button'
@@ -6,6 +7,8 @@ import { useThemeLang } from '@/context/ThemeLanguageContext'
 import type { AssessmentResult } from '@/types'
 
 export default function ProfileResultPage() {
+  useEffect(() => { document.title = 'Your Profile | Financial Wisdom' }, [])
+
   const navigate = useNavigate()
   const { t } = useThemeLang()
   const location = useLocation()

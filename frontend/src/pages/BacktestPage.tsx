@@ -159,6 +159,8 @@ function ChartTooltip({ active, payload, label }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function BacktestPage() {
+  useEffect(() => { document.title = 'Portfolio Validation | Financial Wisdom' }, [])
+
   const navigate    = useNavigate()
   const { theme, t, language }   = useThemeLang()
   const currentYear = new Date().getFullYear()

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {useState, useEffect} from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { AuthLayout } from '@/components/layout/AppLayout'
@@ -8,6 +8,8 @@ import { Alert } from '@/components/ui/index'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
 
 export default function LoginPage() {
+  useEffect(() => { document.title = 'Login | Financial Wisdom' }, [])
+
   const { login, isLoading, error, clearError } = useAuth()
   const { t } = useThemeLang()
   const navigate = useNavigate()

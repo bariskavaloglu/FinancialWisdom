@@ -11,10 +11,10 @@ export function AppLayout({ children, fullWidth = false }: AppLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
       <Navbar />
-      <main className={`flex-1 py-8 px-4 sm:px-6 lg:px-8 ${fullWidth ? '' : 'max-w-7xl mx-auto w-full'}`}>
+      <main id="main-content" className={`flex-1 py-8 px-4 sm:px-6 lg:px-8 ${fullWidth ? '' : 'max-w-7xl mx-auto w-full'}`}>
         {children}
       </main>
-      <footer className="border-t border-stone-200 dark:border-stone-800 py-6 px-4 bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
+      <footer role="contentinfo" aria-label="Site footer" className="border-t border-stone-200 dark:border-stone-800 py-6 px-4 bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-stone-400 dark:text-stone-500">
           <span>© 2026 Financial Wisdom · Şile Işık Üniversitesi</span>
           <span>{t('footer.educational')}</span>
@@ -28,7 +28,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-stone-100 dark:bg-stone-950 transition-colors duration-200">
       <Navbar />
-      <main className="flex-1 flex items-start justify-center px-4 py-12">
+      <main id="main-content" className="flex-1 flex items-start justify-center px-4 py-12">
         {children}
       </main>
     </div>

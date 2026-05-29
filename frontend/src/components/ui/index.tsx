@@ -28,9 +28,9 @@ const alertStyles = {
 }
 const alertIcons = { error: '✕', warning: '⚠', success: '✓', info: 'ℹ' }
 
-export function Alert({ variant = 'error', children }: { variant?: 'error' | 'warning' | 'success' | 'info'; children: React.ReactNode }) {
+export function Alert({ variant = 'error', children, role: roleProp }: { variant?: 'error' | 'warning' | 'success' | 'info'; children: React.ReactNode; role?: string }) {
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-lg border text-sm ${alertStyles[variant]}`}>
+    <div role={roleProp ?? 'alert'} aria-live={variant === 'error' ? 'assertive' : 'polite'} className={`flex items-start gap-3 p-4 rounded-lg border text-sm ${alertStyles[variant]}`}>
       <span className="mt-0.5 font-bold flex-shrink-0">{alertIcons[variant]}</span>
       <div>{children}</div>
     </div>
@@ -40,7 +40,7 @@ export function Alert({ variant = 'error', children }: { variant?: 'error' | 'wa
 export function StalenessWarning() {
   const { t } = useThemeLang()
   return (
-    <div className="stale-warning">
+    <div role="status" aria-live="polite" className="stale-warning">
       <span>⚠</span>
       <span>{t('footer.stale')}</span>
     </div>
@@ -50,7 +50,7 @@ export function StalenessWarning() {
 export function Disclaimer() {
   const { t } = useThemeLang()
   return (
-    <div className="disclaimer">
+    <div role="note" aria-label="Financial disclaimer" className="disclaimer">
       <span className="flex-shrink-0 mt-0.5">⚠</span>
       <span>{t('footer.disclaimer')}</span>
     </div>

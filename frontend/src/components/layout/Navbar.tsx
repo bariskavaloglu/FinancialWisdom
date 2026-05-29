@@ -43,12 +43,12 @@ export function Navbar() {
     .toLocaleUpperCase('en-US') ?? '?'
 
   return (
-    <header className="sticky top-0 z-50 bg-stone-100/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-colors duration-200">
+    <header role="banner" className="sticky top-0 z-50 bg-stone-100/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
+          <Link to="/" aria-label="Financial Wisdom Home" className="flex items-center gap-2.5 flex-shrink-0">
             <span className="text-xl">💰</span>
             <span className="font-display font-bold text-stone-900 dark:text-stone-100 text-lg">
               Financial Wisdom
@@ -56,7 +56,7 @@ export function Navbar() {
           </Link>
 
           {/* Nav links */}
-          <nav className="hidden md:flex items-center gap-7">
+          <nav aria-label="Main navigation" className="hidden md:flex items-center gap-7">
             {isAuthenticated ? (
               <>
                 <NavLink to="/dashboard"     className={navLinkClass}>{t('nav.dashboard')}</NavLink>
@@ -83,6 +83,9 @@ export function Navbar() {
               <div className="relative" ref={settingsRef}>
                 <button
                   onClick={() => setSettingsOpen((v) => !v)}
+                  aria-label="User settings menu"
+                  aria-expanded={settingsOpen}
+                  aria-haspopup="true"
                   className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-stone-200/60 dark:hover:bg-stone-800/60 transition-colors group"
                 >
                   {/* Avatar */}

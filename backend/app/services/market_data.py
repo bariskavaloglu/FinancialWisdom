@@ -93,7 +93,7 @@ ALL_TICKERS: list[str] = [
     # Emtia
     "GLD", "SLV", "IAU",
     # Kripto
-    "BTC-USD", "ETH-USD",
+    "BTC-USD", "ETH-USD", "BNB-USD", "SOL-USD", "ADA-USD",
     # Para piyasası
     "BIL", "SGOV",
     # FX

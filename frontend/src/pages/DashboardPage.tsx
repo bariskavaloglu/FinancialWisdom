@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import {useState, useCallback, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/Button'
@@ -553,6 +553,8 @@ function FactorScoreChart({ portfolio }: { portfolio: Portfolio }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  useEffect(() => { document.title = 'Dashboard | Financial Wisdom' }, [])
+
   const navigate = useNavigate()
   const { t, language } = useThemeLang()
 

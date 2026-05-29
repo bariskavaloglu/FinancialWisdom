@@ -75,8 +75,11 @@ CANDIDATE_UNIVERSE: dict[str, list[dict]] = {
         {"ticker": "IAU", "name": "iShares Gold Trust",   "exchange": "NYSE"},
     ],
     "CRYPTOCURRENCY": [
-        {"ticker": "BTC-USD", "name": "Bitcoin",  "exchange": "CRYPTO"},
-        {"ticker": "ETH-USD", "name": "Ethereum", "exchange": "CRYPTO"},
+        {"ticker": "BTC-USD", "name": "Bitcoin",          "exchange": "CRYPTO"},
+        {"ticker": "ETH-USD", "name": "Ethereum",         "exchange": "CRYPTO"},
+        {"ticker": "BNB-USD", "name": "BNB",              "exchange": "CRYPTO"},
+        {"ticker": "SOL-USD", "name": "Solana",           "exchange": "CRYPTO"},
+        {"ticker": "ADA-USD", "name": "Cardano",          "exchange": "CRYPTO"},
     ],
     "CASH_EQUIVALENT": [
         {"ticker": "BIL",  "name": "SPDR Bloomberg 1-3 Month T-Bill",  "exchange": "NYSE"},

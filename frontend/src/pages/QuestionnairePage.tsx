@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {useState, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/Button'
@@ -16,6 +16,8 @@ import type { QuestionnaireAnswer } from '@/types'
 const QUESTIONS_PER_CATEGORY = 3 // 15 questions / 5 categories
 
 export default function QuestionnairePage() {
+  useEffect(() => { document.title = 'Risk Assessment | Financial Wisdom' }, [])
+
   const { t, language } = useThemeLang()
   const navigate = useNavigate()
 
@@ -127,7 +129,7 @@ export default function QuestionnairePage() {
             ))}
           </div>
           {/* Linear progress */}
-          <div className="h-1 bg-stone-50 dark:bg-stone-700 rounded-full overflow-hidden">
+          <div role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label={`Progress: question ${currentQ + 1} of ${QUESTIONS.length}`} className="h-1 bg-stone-50 dark:bg-stone-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-stone-900 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -151,13 +153,17 @@ export default function QuestionnairePage() {
           </h2>
 
           {/* Options */}
-          <div className="space-y-3 mb-6">
+              {/* aria-label on each option button is applied below via aria-pressed */}
+          <div role="radiogroup" aria-label={questionText} className="space-y-3 mb-6">
             {options.map((option, i) => {
               const isSelected = currentAnswer?.selectedOption === i
               return (
                 <button
                   key={i}
                   onClick={() => selectOption(i)}
+                  role="radio"
+                  aria-checked={isSelected}
+                  aria-label={option}
                   className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all duration-200 group ${
                     isSelected
                       ? 'border-stone-400 dark:border-stone-500 bg-stone-100 dark:bg-stone-700 text-stone-900 dark:text-stone-100'
@@ -188,6 +194,8 @@ export default function QuestionnairePage() {
               <button
                 className="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
                 onClick={() => setShowHelp(!showHelp)}
+                aria-expanded={showHelp}
+                aria-label="Why is this question asked?"
               >
                 <span>💡</span> {lblWhyAsked}
               </button>

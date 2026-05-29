@@ -1,9 +1,12 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/Button'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
 
 export default function NotFoundPage() {
+  useEffect(() => { document.title = 'Page Not Found | Financial Wisdom' }, [])
+
   const navigate = useNavigate()
   const { language } = useThemeLang()
   return (
