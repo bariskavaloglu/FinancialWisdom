@@ -151,11 +151,8 @@ export default function ComparePage() {
     if (!selectedA || !selectedB || selectedA === selectedB) return
     setComparing(true); setCompareError(null)
     try {
-      const [a, b] = await Promise.all([
-        portfolioService.getById(selectedA),
-        portfolioService.getById(selectedB),
-      ])
-      setCompared([a, b])
+      const result = await portfolioService.compare(selectedA, selectedB)
+      setCompared([result.scenarioA, result.scenarioB])
     } catch {
       setCompareError(t('compare.failed'))
     } finally {
