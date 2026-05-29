@@ -138,7 +138,7 @@ function PasswordForm() {
 // ─── Edit Name Form ───────────────────────────────────────────────────────────
 
 function EditNameForm({ currentName, onSaved }: { currentName: string; onSaved: (name: string) => void }) {
-  const { t } = useThemeLang()
+  const { t, language } = useThemeLang()
   const [name,    setName]    = useState(currentName)
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState<string | null>(null)

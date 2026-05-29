@@ -232,12 +232,21 @@ export default function BacktestPage() {
     try {
       // Portfolio ticker + weight pairs
       const holdings: HoldingResult[] = []
-      const instruments = portfolio.allocations.flatMap((a) =>
-        (a.instruments ?? []).map((inst) => ({
-          ticker: inst.ticker, name: inst.name ?? inst.ticker,
-          assetClass: a.assetClass, weight: inst.weight,
-        }))
-      )
+      // Weight per instrument = allocation targetWeight / number of instruments in that class
+      const instruments: { ticker: string; name: string; assetClass: string; weight: number }[] = []
+      for (const alloc of portfolio.allocations) {
+        const insts = alloc.instruments ?? []
+        if (!insts.length) continue
+        const perInst = (alloc.targetWeight / 100) / insts.length
+        for (const inst of insts) {
+          instruments.push({
+            ticker: inst.ticker,
+            name: inst.name ?? inst.ticker,
+            assetClass: alloc.assetClass,
+            weight: perInst,
+          })
+        }
+      }
 
       if (instruments.length === 0) {
         setFatalErr(language === 'tr' ? 'Portföyde varlık bulunamadı.' : 'No assets found in portfolio.')
