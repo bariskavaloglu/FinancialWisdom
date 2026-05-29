@@ -215,7 +215,7 @@ function DailyChangeHeatmap({ items }: { items: PoolItem[] }) {
   return (
     <div className="card">
       <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
-        {t('pool.dailyChange')} — {t('pool.allInstruments')} <span className="text-stone-500 dark:text-stone-600 font-mono text-xs ml-2">({period.toUpperCase()} {t('common.period')})</span>
+        {t('pool.dailyChange')} — {t('pool.allInstruments')}
       </h3>
       <div className="flex flex-wrap gap-2">
         {sorted.map(item => {
