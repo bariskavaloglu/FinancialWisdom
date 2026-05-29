@@ -86,6 +86,8 @@ function PortfolioDropdown({
 }) {
   const [open, setOpen] = useState(false)
   const { t, language } = useThemeLang()
+
+  useEffect(() => { document.title = `${t('nav.dashboard')} | Financial Wisdom` }, [language, t])
   const current = assessments.find((a) => a.portfolioId === selectedId)
 
   if (assessments.length <= 1) return null
@@ -553,7 +555,6 @@ function FactorScoreChart({ portfolio }: { portfolio: Portfolio }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  useEffect(() => { document.title = `${t('nav.dashboard')} | Financial Wisdom` }, [language, t])
 
   const navigate = useNavigate()
   const { t, language } = useThemeLang()

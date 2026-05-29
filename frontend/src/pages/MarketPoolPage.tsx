@@ -93,6 +93,8 @@ function StatCard({ label, value, sub, accent }: {
 
 function AssetClassBadge({ assetClass }: { assetClass: AssetClass }) {
   const { theme, t, language} = useThemeLang()
+
+  useEffect(() => { document.title = `${t('nav.marketPool')} | Financial Wisdom` }, [language, t])
   const cfg = getAssetConfig(assetClass, t)
   const clr = theme === 'dark' ? cfg.darkColor : cfg.color
   return (
@@ -578,7 +580,6 @@ function TickerDrawer({ ticker, period, onClose }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function MarketPoolPage() {
-  useEffect(() => { document.title = `${t('nav.marketPool')} | Financial Wisdom` }, [language, t])
 
   const [period, setPeriod]             = useState('1y')
   const [filterClass, setFilterClass]   = useState<AssetClass | 'ALL'>('ALL')

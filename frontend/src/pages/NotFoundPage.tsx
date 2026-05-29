@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/Button'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
 
 export default function NotFoundPage() {
-  useEffect(() => { document.title = `${t('page.notFound')} | Financial Wisdom` }, [language, t])
 
   const navigate = useNavigate()
-  const { language } = useThemeLang()
+  const { language, t } = useThemeLang()
+
+  useEffect(() => { document.title = `${t('page.notFound')} | Financial Wisdom` }, [language, t])
   return (
     <AppLayout>
       <div className="flex flex-col items-center justify-center py-32 text-center">

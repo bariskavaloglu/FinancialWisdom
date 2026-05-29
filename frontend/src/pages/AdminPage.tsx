@@ -62,9 +62,10 @@ const emptyForm = (): OverrideFormState => ({
 // ─── Ana Bileşen ──────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  useEffect(() => { document.title = `${t('nav.admin')} | Financial Wisdom` }, [language, t])
 
   const { t, language} = useThemeLang()
+
+  useEffect(() => { document.title = `${t('nav.admin')} | Financial Wisdom` }, [language, t])
   const [tab, setTab] = useState<Tab>('overrides')
 
   return (

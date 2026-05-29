@@ -159,10 +159,9 @@ function ChartTooltip({ active, payload, label }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function BacktestPage() {
-  useEffect(() => { document.title = `${t('page.backtest')} | Financial Wisdom` }, [language, t])
-
   const navigate    = useNavigate()
   const { theme, t, language }   = useThemeLang()
+  useEffect(() => { document.title = `${t('page.backtest')} | Financial Wisdom` }, [language, t])
   const currentYear = new Date().getFullYear()
 
   const [portfolio,        setPortfolio       ] = useState<Portfolio | null>(null)
