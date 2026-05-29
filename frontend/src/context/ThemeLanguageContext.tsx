@@ -816,6 +816,9 @@ export function ThemeLanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem('fw-lang', language)
+    // Update html lang attribute so CSS text-transform uses correct locale
+    // (prevents Turkish İ/ı issue with uppercase CSS)
+    document.documentElement.lang = language
   }, [language])
 
   const toggleTheme    = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'))

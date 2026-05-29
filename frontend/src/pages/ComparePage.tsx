@@ -129,7 +129,7 @@ function WinnerBadge({ winner, label }: { winner: 'A' | 'B' | 'tie'; label: stri
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ComparePage() {
-  const { t, theme } = useThemeLang()
+  const { t, theme, language } = useThemeLang()
   const tooltipStyle = {
     background: theme === 'dark' ? '#1c1917' : '#fff',
     border: theme === 'dark' ? '1px solid #44403c' : '1px solid #e7e5e4',
@@ -237,7 +237,7 @@ export default function ComparePage() {
                     <option value="">{t('compare.select')}</option>
                     {portfolios.map((p) => (
                       <option key={p.portfolioId} value={p.portfolioId}>
-                        {t(`profile.${p.profileType}`)} / {t(`horizon.${p.horizonType}`)} · {new Date(p.generatedAt).toLocaleDateString('tr-TR')}
+                        {t(`profile.${p.profileType}`)} / {t(`horizon.${p.horizonType}`)} · {new Date(p.generatedAt).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </option>
                     ))}
                   </select>

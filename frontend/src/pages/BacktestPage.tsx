@@ -256,7 +256,7 @@ export default function BacktestPage() {
       for (const inst of instruments) {
         try {
           const data = await poolService.getTicker(inst.ticker, '2y')
-          const prices: PricePoint[] = (data.prices ?? data.chart ?? []).map(
+          const prices: PricePoint[] = (data.history ?? data.prices ?? data.chart ?? []).map(
             (p: { date: string; close: number }) => ({ date: p.date, close: p.close })
           )
           const { h1, h2 } = splitHalves(prices, year)
@@ -274,13 +274,13 @@ export default function BacktestPage() {
             ticker:       inst.ticker,
             name:         inst.name,
             assetClass:   inst.assetClass,
-            weight:       inst.weight / 100,
+            weight:       inst.weight,
             priceH1Start: h1[0].close,
             priceH1End:   h1[h1.length - 1].close,
             priceH2End:   h2[h2.length - 1].close,
             h1Return,
             h2Return,
-            contribution: (inst.weight / 100) * h2Return,
+            contribution: inst.weight * h2Return,
             monthlyH2:    monthly,
           })
         } catch {
