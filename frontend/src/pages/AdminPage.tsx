@@ -191,7 +191,7 @@ function OverridesTab() {
       {allOverrides.length > 0 && (
         <div className="card space-y-3">
           <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest">
-            {t('admin.newOverride').replace('{t('admin.newOverride')}','').trim()} ({allOverrides.length})
+            {language === 'tr' ? `Aktif Kısıtlar (${allOverrides.length})` : `Active Overrides (${allOverrides.length})`}
           </h3>
           <div className="divide-y divide-stone-100 dark:divide-stone-800">
             {allOverrides.map(ov => (
@@ -376,7 +376,7 @@ function OverridesTab() {
       {/* Kullanıcı listesi özet */}
       <div className="card">
         <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
-          {`${t('admin.allUsers').replace('{n}', String((users ?? []).length))}`}
+          {language === 'tr' ? `Tüm Kullanıcılar (${(users ?? []).length})` : `All Users (${(users ?? []).length})`}
         </h3>
         <div className="divide-y divide-stone-100 dark:divide-stone-800">
           {(users ?? []).map(u => (
