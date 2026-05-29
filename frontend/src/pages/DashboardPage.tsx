@@ -725,7 +725,7 @@ export default function DashboardPage() {
           <StatCard
             label={t('stat.riskProfile')}
             value={profileLabel[activePortfolio.profileType] ?? activePortfolio.profileType}
-            sub={activePortfolio.profileType}
+            sub={profileLabel[activePortfolio.profileType] ?? activePortfolio.profileType}
           />
           <StatCard
             label={t('stat.portfolioScore')}

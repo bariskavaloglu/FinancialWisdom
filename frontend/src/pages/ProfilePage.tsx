@@ -167,7 +167,7 @@ function EditNameForm({ currentName, onSaved }: { currentName: string; onSaved: 
           className="input"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Ad Soyad"
+          placeholder={language === 'tr' ? 'Ad Soyad' : 'Full Name'}
         />
       </div>
       <div className="flex gap-2">
