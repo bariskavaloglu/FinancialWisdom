@@ -44,12 +44,26 @@ interface PoolSnapshot {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const ASSET_CONFIG: Record<AssetClass, { label: string; color: string; bg: string; darkColor: string }> = {
-  BIST_EQUITY:     { label: 'BIST',       color: '#f97316', darkColor: '#fb923c', bg: '#f9731615' },
-  SP500_EQUITY:    { label: 'S&P 500',    color: '#3B82F6', darkColor: '#60a5fa', bg: '#3B82F615' },
-  COMMODITY:       { label: 'Commodity',  color: '#22C55E', darkColor: '#4ade80', bg: '#22C55E15' },
-  CRYPTOCURRENCY:  { label: 'Crypto',     color: '#A78BFA', darkColor: '#c4b5fd', bg: '#A78BFA15' },
-  CASH_EQUIVALENT: { label: 'Cash',       color: '#6B7280', darkColor: '#d1d5db', bg: '#6B728015' },
+const ASSET_CONFIG_COLORS: Record<AssetClass, { color: string; bg: string; darkColor: string }> = {
+  BIST_EQUITY:     { color: '#f97316', darkColor: '#fb923c', bg: '#f9731615' },
+  SP500_EQUITY:    { color: '#3B82F6', darkColor: '#60a5fa', bg: '#3B82F615' },
+  COMMODITY:       { color: '#22C55E', darkColor: '#4ade80', bg: '#22C55E15' },
+  CRYPTOCURRENCY:  { color: '#A78BFA', darkColor: '#c4b5fd', bg: '#A78BFA15' },
+  CASH_EQUIVALENT: { color: '#6B7280', darkColor: '#d1d5db', bg: '#6B728015' },
+}
+
+function getAssetConfig(assetClass: AssetClass, t: (k: string) => string) {
+  const keyMap: Record<AssetClass, string> = {
+    BIST_EQUITY:     'asset.BIST_SHORT',
+    SP500_EQUITY:    'asset.SP500_SHORT',
+    COMMODITY:       'asset.COMMODITY_SHORT',
+    CRYPTOCURRENCY:  'asset.CRYPTO_SHORT',
+    CASH_EQUIVALENT: 'asset.CASH_SHORT',
+  }
+  return {
+    label:     t(keyMap[assetClass]),
+    ...ASSET_CONFIG_COLORS[assetClass],
+  }
 }
 
 const PERIODS = [
@@ -78,8 +92,8 @@ function StatCard({ label, value, sub, accent }: {
 }
 
 function AssetClassBadge({ assetClass }: { assetClass: AssetClass }) {
-  const { theme } = useThemeLang()
-  const cfg = ASSET_CONFIG[assetClass]
+  const { theme, t } = useThemeLang()
+  const cfg = getAssetConfig(assetClass, t)
   const clr = theme === 'dark' ? cfg.darkColor : cfg.color
   return (
     <span
@@ -169,7 +183,7 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
           />
           <Bar dataKey="score" name={t("pool.compositeName")} radius={[4, 4, 0, 0]}>
             {data.map((d, i) => {
-              const cfg = ASSET_CONFIG[d.assetClass]
+              const cfg = getAssetConfig(d.assetClass, t)
               return <Cell key={i} fill={isDark ? cfg.darkColor : cfg.color} />
             })}
           </Bar>
@@ -178,7 +192,7 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
       {/* Legend */}
       <div className="flex flex-wrap gap-3 mt-3">
         {ALL_CLASSES.map(cls => {
-          const cfg = ASSET_CONFIG[cls]
+          const cfg = getAssetConfig(cls, t)
           const hasData = data.some(d => d.assetClass === cls)
           if (!hasData) return null
           return (
@@ -201,7 +215,7 @@ function DailyChangeHeatmap({ items }: { items: PoolItem[] }) {
   return (
     <div className="card">
       <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
-        {t('pool.dailyChange')} — {t('pool.allInstruments')}
+        {t('pool.dailyChange')} — {t('pool.allInstruments')} <span className="text-stone-500 dark:text-stone-600 font-mono text-xs ml-2">({period.toUpperCase()} {t('common.period')})</span>
       </h3>
       <div className="flex flex-wrap gap-2">
         {sorted.map(item => {
@@ -637,7 +651,7 @@ export default function MarketPoolPage() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label={t('pool.totalInstruments')} value={String(data?.count ?? '—')} sub={`${period.toLocaleUpperCase('en-US')} ${t('common.period')}`} />
+          <StatCard label={t('pool.totalInstruments')} value={String(data?.count ?? '—')} sub={t(`pool.period.${period}`) ?? `${period.toUpperCase()} ${t('common.period')}`} />
           <StatCard
             label={t('pool.gainersLosers')}
             value={`${gainers} / ${losers}`}
@@ -683,7 +697,7 @@ export default function MarketPoolPage() {
               All
             </button>
             {ALL_CLASSES.map(cls => {
-              const cfg = ASSET_CONFIG[cls]
+              const cfg = getAssetConfig(cls, t)
               const active = filterClass === cls
               const clr = theme === 'dark' ? cfg.darkColor : cfg.color
               return (

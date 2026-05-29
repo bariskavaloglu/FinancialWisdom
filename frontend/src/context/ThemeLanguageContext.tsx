@@ -175,6 +175,10 @@ const translations: Record<Language, Record<string, string>> = {
     'common.close':     'Close',
     'common.noData':    'No data available',
     'common.period':    'period',
+    'pool.period.1m': '1 Month',
+    'pool.period.3m': '3 Months',
+    'pool.period.1y': '1 Year',
+    'pool.period.2y': '2 Years',
 
     // Market Pool
     'pool.title':            'Market Data Pool',
@@ -545,6 +549,10 @@ const translations: Record<Language, Record<string, string>> = {
     'common.close':     'Kapat',
     'common.noData':    'Veri bulunamadı',
     'common.period':    'dönem',
+    'pool.period.1m': '1 Ay',
+    'pool.period.3m': '3 Ay',
+    'pool.period.1y': '1 Yıl',
+    'pool.period.2y': '2 Yıl',
 
     // Market Pool
     'pool.title':            'Piyasa Veri Havuzu',

@@ -163,7 +163,16 @@ export default function ComparePage() {
   // ── Radar data ──
   const radarData = compared
     ? ASSET_KEYS.map((cls) => ({
-        subject: t(`asset.${cls}_SHORT`),
+        subject: (() => {
+          const keyMap: Record<string, string> = {
+            BIST_EQUITY: 'asset.BIST_SHORT',
+            SP500_EQUITY: 'asset.SP500_SHORT',
+            COMMODITY: 'asset.COMMODITY_SHORT',
+            CRYPTOCURRENCY: 'asset.CRYPTO_SHORT',
+            CASH_EQUIVALENT: 'asset.CASH_SHORT',
+          }
+          return t(keyMap[cls] ?? `asset.${cls}`)
+        })(),
         A: compared[0].allocations.find((a) => a.assetClass === cls)?.targetWeight ?? 0,
         B: compared[1].allocations.find((a) => a.assetClass === cls)?.targetWeight ?? 0,
       }))
@@ -172,7 +181,16 @@ export default function ComparePage() {
   // ── Bar data for full allocation ──
   const barData = compared
     ? ASSET_KEYS.map((cls) => ({
-        name: t(`asset.${cls}_SHORT`),
+        name: (() => {
+          const keyMap: Record<string, string> = {
+            BIST_EQUITY: 'asset.BIST_SHORT',
+            SP500_EQUITY: 'asset.SP500_SHORT',
+            COMMODITY: 'asset.COMMODITY_SHORT',
+            CRYPTOCURRENCY: 'asset.CRYPTO_SHORT',
+            CASH_EQUIVALENT: 'asset.CASH_SHORT',
+          }
+          return t(keyMap[cls] ?? `asset.${cls}`)
+        })(),
         [t('compare.scenarioA')]: compared[0].allocations.find((a) => a.assetClass === cls)?.targetWeight ?? 0,
         [t('compare.scenarioB')]: compared[1].allocations.find((a) => a.assetClass === cls)?.targetWeight ?? 0,
       }))
