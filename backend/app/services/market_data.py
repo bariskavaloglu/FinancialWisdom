@@ -283,6 +283,94 @@ def get_usdtry_rate() -> float:
     return 38.0
 
 
+def _yahoo_chart_range(ticker: str, start: str, end: str, interval: str = "1d") -> dict | None:
+    """
+    Ham /v8/finance/chart isteği — period yerine start/end tarihi kullanır.
+    start / end: "YYYY-MM-DD" formatında string (Unix timestamp'e çevrilir).
+    """
+    import calendar
+    def _to_unix(date_str: str) -> int:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        return int(calendar.timegm(dt.timetuple()))
+
+    params = {
+        "period1":  _to_unix(start),
+        "period2":  _to_unix(end),
+        "interval": interval,
+        "events":   "history",
+        "includeAdjustedClose": "true",
+    }
+
+    for base_url in _YF_ENDPOINTS:
+        url = f"{base_url}/v8/finance/chart/{ticker}"
+        for attempt in range(_MAX_RETRIES):
+            try:
+                resp = requests.get(url, params=params, headers=_HEADERS, timeout=_REQ_TIMEOUT)
+                if resp.status_code == 429:
+                    wait = _BACKOFF_BASE ** (attempt + 1)
+                    time.sleep(wait)
+                    continue
+                if resp.status_code != 200:
+                    break
+                data   = resp.json()
+                result = data.get("chart", {}).get("result")
+                if not result:
+                    return None
+                return result[0]
+            except requests.exceptions.Timeout:
+                time.sleep(_BACKOFF_BASE ** attempt)
+            except Exception:
+                break
+    return None
+
+
+def get_price_history_until(ticker: str, as_of_date: str, lookback_years: int = 1) -> list[dict]:
+    """
+    Belirli bir tarihe kadar olan fiyat geçmişini döner.
+    as_of_date: "YYYY-MM-DD" — bu tarihten sonraki veriler dahil edilmez.
+    Simülasyon için lookahead bias'ı önler.
+    """
+    from datetime import timedelta
+    end_dt   = datetime.strptime(as_of_date, "%Y-%m-%d")
+    start_dt = end_dt - timedelta(days=365 * lookback_years + 30)  # biraz margin
+    start    = start_dt.strftime("%Y-%m-%d")
+    end      = (end_dt + timedelta(days=1)).strftime("%Y-%m-%d")  # end exclusive
+
+    cache_key = f"{_CACHE_PREFIX_HIST}{ticker}:until:{as_of_date}"
+    redis = get_redis()
+    if redis:
+        try:
+            cached = redis.get(cache_key)
+            if cached:
+                return json.loads(cached)
+        except Exception:
+            pass
+
+    chart = _yahoo_chart_range(ticker, start=start, end=end, interval="1d")
+    if chart is None:
+        return []
+    records = _parse_chart_to_records(chart)
+
+    if redis and records:
+        try:
+            redis.setex(cache_key, _TTL, json.dumps(records))
+        except Exception:
+            pass
+
+    return records
+
+
+def get_batch_price_history_until(
+    tickers: list[str],
+    as_of_date: str,
+    lookback_years: int = 1,
+) -> dict[str, list[dict]]:
+    """
+    Birden fazla ticker için get_price_history_until wrapper'ı.
+    """
+    return {t: get_price_history_until(t, as_of_date, lookback_years) for t in tickers}
+
+
 def get_price_history(ticker: str, period: str = "1y") -> list[dict]:
     """Tek ticker OHLCV — önce cache, yoksa ham Yahoo API."""
     redis     = get_redis()

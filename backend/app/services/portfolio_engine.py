@@ -411,6 +411,7 @@ def _select_instruments(
     target_weight: float,
     max_instruments: int,
     factor_weights: dict | None = None,
+    as_of_date: str | None = None,
 ) -> list[dict]:
     if target_weight == 0:
         return []
@@ -423,7 +424,7 @@ def _select_instruments(
     ticker_meta = {c["ticker"]: c for c in candidates}
 
     try:
-        scored = score_instruments(tickers, weights=factor_weights)
+        scored = score_instruments(tickers, weights=factor_weights, as_of_date=as_of_date)
         top    = scored[:max_instruments]
     except Exception as exc:
         logger.warning("Factor scoring failed for %s: %s", asset_class, exc)
@@ -522,6 +523,7 @@ def build_portfolio(
     factor_weights: dict | None = None,
     max_instruments: int | None = None,
     admin_guardrails: list[dict] | None = None,
+    as_of_date: str | None = None,
 ) -> dict:
     """
     Algoritma D: Questionnaire cevaplarından doğrudan portföy üret.
@@ -531,14 +533,15 @@ def build_portfolio(
 
     admin_guardrails: Admin tarafından eklenen ek guardrail'ler.
     Format: [{"dim": "CRYPTOCURRENCY", "action": "max", "val": 5, "reason": "..."}]
-    Bu guardrail'ler GUARDRAILS listesine eklenir, algoritma değişmez.
+    as_of_date: "YYYY-MM-DD" — simülasyon modu; factor scoring bu tarihten
+                önceki verilerle yapılır, lookahead bias yoktur.
     """
     max_inst = max_instruments or settings.MAX_INSTRUMENTS_PER_CLASS
 
     if answers:
         logger.info(
-            "Building portfolio (Algorithm D): profile=%s horizon=%s answers=%d admin_guardrails=%d",
-            profile, horizon, len(answers), len(admin_guardrails or [])
+            "Building portfolio (Algorithm D): profile=%s horizon=%s answers=%d admin_guardrails=%d as_of=%s",
+            profile, horizon, len(answers), len(admin_guardrails or []), as_of_date or "now"
         )
         weights_float = compute_weights_from_answers(
             answers, extra_guardrails=admin_guardrails
@@ -557,6 +560,7 @@ def build_portfolio(
             target_weight=target_weight,
             max_instruments=max_inst,
             factor_weights=factor_weights,
+            as_of_date=as_of_date,
         )
         allocations.append({
             "asset_class":   asset_class,

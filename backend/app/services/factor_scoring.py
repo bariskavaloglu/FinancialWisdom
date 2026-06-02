@@ -268,9 +268,11 @@ _QUA_LO, _QUA_HI =  -5.0,   5.0
 def score_instruments(
     tickers: list[str],
     weights: dict | None = None,
+    as_of_date: str | None = None,
 ) -> list[dict]:
     """
     Tüm tickerları batch olarak skorlar.
+    as_of_date verilirse o tarih itibarıyla geçmiş veriyle skorlar (simülasyon modu).
     pandas-ta mevcutsa orijinal faktörlerle harmanlar, yoksa sadece orijinal kullanır.
     """
     if weights is None:
@@ -281,10 +283,16 @@ def score_instruments(
     w_qua = weights.get("quality",    DEFAULT_WEIGHTS["quality"])
     w_vol = weights.get("volatility", DEFAULT_WEIGHTS["volatility"])
 
-    logger.info("Batch scoring %d instruments (TA-enhanced)", len(tickers))
-    histories = get_batch_price_history(tickers, period="1y")
-    now       = datetime.now(timezone.utc).isoformat()
-    scored    = []
+    logger.info("Batch scoring %d instruments (TA-enhanced, as_of=%s)", len(tickers), as_of_date or "now")
+
+    if as_of_date:
+        from app.services.market_data import get_batch_price_history_until
+        histories = get_batch_price_history_until(tickers, as_of_date, lookback_years=1)
+    else:
+        histories = get_batch_price_history(tickers, period="1y")
+
+    now    = datetime.now(timezone.utc).isoformat()
+    scored = []
 
     for ticker in tickers:
         history       = histories.get(ticker, [])

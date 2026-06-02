@@ -18,7 +18,7 @@ from app.dependencies import get_current_user
 from app.models.assessment import RiskAssessment
 from app.models.portfolio import AssetAllocation, Portfolio
 from app.models.user import User
-from app.schemas.assessment import AssessmentListItem, AssessmentResult, AssessmentSubmitRequest
+from app.schemas.assessment import AssessmentListItem, AssessmentResult, AssessmentSubmitRequest, SimulateRequest
 from app.services.assessment_service import (
     classify_horizon,
     classify_profile,
@@ -220,3 +220,96 @@ def list_assessments(
             completedAt=a.created_at.isoformat(),
         ))
     return result
+
+
+# ── Simülasyon endpoint'i ─────────────────────────────────────────────────────
+
+@router.post("/simulate", status_code=status.HTTP_200_OK)
+def simulate_portfolio(
+    body: SimulateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Gerçek simülasyon: verilen anket cevaplarını + as_of_date'i alır,
+    o tarih itibarıyla factor scoring yaparak portföy oluşturur.
+    Portföy DB'ye kaydedilmez — sadece sonuç döner.
+
+    as_of_date: "YYYY-MM-DD" — bu tarihten sonraki piyasa verisi görünmez.
+    Kullanıcı "Ocak 2024'te bu anketi doldurmış olsaydım" simülasyonu yapabilir.
+    """
+    composite_score = compute_composite_score(body.answers)
+    profile_type    = classify_profile(composite_score)
+    horizon_type    = classify_horizon(body.answers)
+
+    logger.info(
+        "Simulate portfolio: user=%s as_of=%s profile=%s horizon=%s",
+        current_user.id, body.as_of_date, profile_type, horizon_type,
+    )
+
+    raw_answers = [a.model_dump() for a in body.answers]
+
+    try:
+        engine_result = build_portfolio(
+            profile_type,
+            horizon_type,
+            answers=raw_answers,
+            as_of_date=body.as_of_date,
+        )
+    except Exception as exc:
+        logger.error("Simulate portfolio engine error: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Simulation failed. Please try again.",
+        )
+
+    # Portfolio schema formatında döndür ama portfolioId olmadan
+    return {
+        "simulated":          True,
+        "asOfDate":           body.as_of_date,
+        "profileType":        profile_type,
+        "horizonType":        horizon_type,
+        "portfolioScore":     engine_result["portfolio_score"],
+        "expectedReturn":     engine_result["expected_return"],
+        "expectedVolatility": engine_result["expected_volatility"],
+        "explanation":        engine_result["explanation"],
+        "allocations": [
+            {
+                "assetClass":   a["asset_class"],
+                "targetWeight": a["target_weight"],
+                "instruments":  a["instruments"],
+            }
+            for a in engine_result["allocations"]
+            if a["target_weight"] > 0
+        ],
+    }
+
+
+@router.get("/{assessment_id}/answers")
+def get_assessment_answers(
+    assessment_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Assessment cevaplarını döner — simülasyon için kullanılır.
+    Sadece kendi assessment'larına erişilebilir.
+    """
+    import uuid as _uuid
+    try:
+        aid = _uuid.UUID(assessment_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid assessment ID")
+
+    assessment = (
+        db.query(RiskAssessment)
+        .filter(
+            RiskAssessment.id == aid,
+            RiskAssessment.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    return {"assessmentId": str(assessment.id), "answers": assessment.answers}

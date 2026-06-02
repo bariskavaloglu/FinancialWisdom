@@ -27,3 +27,12 @@ class AssessmentListItem(BaseModel):
     compositeScore: int
     portfolioId: str
     completedAt: str
+
+
+class SimulateRequest(BaseModel):
+    """
+    Simülasyon isteği: anket cevapları + simülasyon başlangıç tarihi.
+    as_of_date: "YYYY-MM-DD" — factor scoring bu tarih itibarıyla yapılır.
+    """
+    answers:    list[QuestionnaireAnswer] = Field(..., min_length=15, max_length=15)
+    as_of_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")

@@ -49,6 +49,14 @@ export const assessmentService = {
     // Filter out assessments whose portfolio was deleted (portfolioId empty)
     return (data as AssessmentListItem[]).filter((a) => a.portfolioId && a.portfolioId !== '')
   },
+
+  simulate: async (answers: AssessmentSubmitRequest['answers'], asOfDate: string) => {
+    const { data } = await api.post('/assessments/simulate', {
+      answers,
+      as_of_date: asOfDate,
+    })
+    return data
+  },
 }
 
 // ─── Portfolio Service ─────────────────────────────────────────────────────────
