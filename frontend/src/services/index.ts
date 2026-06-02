@@ -46,8 +46,12 @@ export const assessmentService = {
 
   listAll: async (): Promise<AssessmentListItem[]> => {
     const { data } = await api.get('/assessments/history')
-    // Filter out assessments whose portfolio was deleted (portfolioId empty)
     return (data as AssessmentListItem[]).filter((a) => a.portfolioId && a.portfolioId !== '')
+  },
+
+  getAnswers: async (assessmentId: string): Promise<{ answers: { questionId: number; selectedOption: number }[] }> => {
+    const { data } = await api.get(`/assessments/${assessmentId}/answers`)
+    return data
   },
 
   simulate: async (answers: AssessmentSubmitRequest['answers'], asOfDate: string) => {
