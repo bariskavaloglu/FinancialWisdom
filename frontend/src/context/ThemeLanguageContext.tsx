@@ -509,7 +509,7 @@ const translations: Record<Language, Record<string, string>> = {
     'chart.cacheNote':            'yfinance verisi (15 dk önbellek)',
 
     // Profile types
-    'profile.conservative': 'Muhafazakâr',
+    'profile.conservative': 'Temkinli',
     'profile.balanced':     'Dengeli',
     'profile.aggressive':   'Agresif',
     'profile.conservativeDesc': 'Sermaye koruma önceliklidir. Büyüme yerine istikrar.',
