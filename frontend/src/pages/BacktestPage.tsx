@@ -177,7 +177,7 @@ export default function BacktestPage() {
   useEffect(() => { document.title = `${t('backtest.title')} | Financial Wisdom` }, [language, t])
 
   const currentYear = new Date().getFullYear()
-  const availableYears = [currentYear - 1, currentYear - 2, currentYear - 3].filter(y => y >= 2022)
+  const availableYears = [currentYear - 1, currentYear - 2].filter(y => y >= 2024)
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [assessments,    setAssessments   ] = useState<AssessmentListItem[]>([])
@@ -188,7 +188,9 @@ export default function BacktestPage() {
   const [softErr,        setSoftErr       ] = useState<string | null>(null)
   const [fatalErr,       setFatalErr      ] = useState<string | null>(null)
   const [result,         setResult        ] = useState<BacktestResult | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
+  const abortRef  = useRef<AbortController | null>(null)
+  // Önbellek: "assessmentId_year" → BacktestResult
+  const cacheRef   = useRef<Map<string, BacktestResult>>(new Map())
 
   const isDark    = theme === 'dark'
   const gridColor = isDark ? '#292524' : '#f5f5f4'
@@ -235,6 +237,17 @@ export default function BacktestPage() {
   // ── Backtest core ──────────────────────────────────────────────────────────
   const runBacktest = useCallback(async () => {
     if (!selectedAsmtId) return
+
+    // Önbellekte varsa anında göster, API çağrısı yapma
+    const cacheKey = `${selectedAsmtId}_${year}`
+    const cached = cacheRef.current.get(cacheKey)
+    if (cached) {
+      setResult(cached)
+      setSoftErr(null)
+      setFatalErr(null)
+      return
+    }
+
     abortRef.current?.abort()
     abortRef.current = new AbortController()
 
@@ -312,7 +325,7 @@ export default function BacktestPage() {
       const cumSeries  = toCumulative(monthly)
       const totalH2    = holdings.reduce((s, h) => s + h.contribution, 0)
 
-      setResult({
+      const newResult: BacktestResult = {
         simPortfolio,
         year,
         asOfDate,
@@ -322,7 +335,9 @@ export default function BacktestPage() {
         sharpe:      calcSharpe(monthly),
         winRate:     holdings.filter(h => h.h2Return > 0).length / holdings.length,
         cumulativeSeries: cumSeries,
-      })
+      }
+      cacheRef.current.set(cacheKey, newResult)
+      setResult(newResult)
     } catch {
       setFatalErr(language === 'tr' ? 'Beklenmeyen bir hata oluştu.' : 'An unexpected error occurred.')
     } finally {
