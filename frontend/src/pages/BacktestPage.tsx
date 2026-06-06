@@ -7,10 +7,11 @@
  *  3. Seçilen anketin cevapları + "YYYY-06-30" (H1 sonu) tarihi ile
  *     /assessments/simulate çağrılır → o tarihe göre portföy inşa edilir.
  *  4. O simüle portföyün varlıklarına ait H2 (Tem–Ara) gerçek fiyat
- *     verileri yfinance üzerinden çekilir.
- *  5. H2 getiri, Sharpe, max-drawdown vb. hesaplanır ve gösterilir.
+ *     verileri yfinance üzerından çekilir.
+ *  5. H2 getiri, Sharpe, max-drawdown hesaplanır ve gösterilir.
  *
- * Böylece "elindeki anket değil, o tarihte yapılan anket" mantığı kurulur.
+ * H1 dönemi gösterilmez — portföy henüz o dönemde yoktu.
+ * Gösterilen tek performans: H2 (portföyün tutulduğu dönem).
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
@@ -31,17 +32,15 @@ import {
 interface PricePoint { date: string; close: number }
 
 interface HoldingResult {
-  ticker:       string
-  name:         string
-  assetClass:   string
-  weight:       number
-  priceH1Start: number
-  priceH1End:   number
-  priceH2End:   number
-  h1Return:     number
-  h2Return:     number
-  contribution: number
-  monthlyH2:    number[]
+  ticker:        string
+  name:          string
+  assetClass:    string
+  weight:        number
+  entryPrice:    number   // H2 başlangıç fiyatı (1 Temmuz)
+  exitPrice:     number   // H2 bitiş fiyatı (31 Aralık)
+  h2Return:      number
+  contribution:  number
+  monthlyH2:     number[]
 }
 
 interface SimulatedPortfolio {
@@ -64,7 +63,6 @@ interface BacktestResult {
   asOfDate:         string
   holdings:         HoldingResult[]
   totalH2:          number
-  totalH1:          number
   maxDrawdown:      number
   sharpe:           number
   winRate:          number
@@ -87,14 +85,11 @@ function fmtPct(v: number, d = 2) {
   return `${v >= 0 ? '+' : ''}${(v * 100).toFixed(d)}%`
 }
 
-function splitHalves(prices: PricePoint[], year: number) {
-  const h1Cut     = `${year}-07-01`
-  const yearStart = `${year}-01-01`
-  const yearEnd   = `${year + 1}-01-01`
-  return {
-    h1: prices.filter((p) => p.date >= yearStart && p.date < h1Cut),
-    h2: prices.filter((p) => p.date >= h1Cut    && p.date < yearEnd),
-  }
+/** Yalnızca H2 (Temmuz–Aralık) dilimini döner */
+function sliceH2(prices: PricePoint[], year: number): PricePoint[] {
+  const h2Start = `${year}-07-01`
+  const h2End   = `${year + 1}-01-01`
+  return prices.filter((p) => p.date >= h2Start && p.date < h2End)
 }
 
 function monthlyH2Returns(h2: PricePoint[]): number[] {
@@ -177,34 +172,28 @@ function ChartTooltip({ active, payload, label }: {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function BacktestPage() {
-  const navigate    = useNavigate()
-  const { theme, t, language }   = useThemeLang()
+  const navigate   = useNavigate()
+  const { theme, t, language } = useThemeLang()
   useEffect(() => { document.title = `${t('backtest.title')} | Financial Wisdom` }, [language, t])
 
   const currentYear = new Date().getFullYear()
-  const availableYears = [currentYear - 1, currentYear - 2, currentYear - 3].filter(
-    (y) => y >= 2022,
-  )
+  const availableYears = [currentYear - 1, currentYear - 2, currentYear - 3].filter(y => y >= 2022)
 
-  // ── Assessments list ────────────────────────────────────────────────────────
+  // ── State ──────────────────────────────────────────────────────────────────
   const [assessments,    setAssessments   ] = useState<AssessmentListItem[]>([])
   const [loadingList,    setLoadingList   ] = useState(true)
   const [selectedAsmtId, setSelectedAsmtId] = useState<string>('')
-
-  // ── Config ──────────────────────────────────────────────────────────────────
-  const [year,    setYear   ] = useState(currentYear - 1)
-
-  // ── Run state ───────────────────────────────────────────────────────────────
-  const [loading, setLoading] = useState(false)
-  const [softErr, setSoftErr] = useState<string | null>(null)
-  const [fatalErr,setFatalErr] = useState<string | null>(null)
-  const [result,  setResult ] = useState<BacktestResult | null>(null)
+  const [year,           setYear          ] = useState(currentYear - 1)
+  const [loading,        setLoading       ] = useState(false)
+  const [softErr,        setSoftErr       ] = useState<string | null>(null)
+  const [fatalErr,       setFatalErr      ] = useState<string | null>(null)
+  const [result,         setResult        ] = useState<BacktestResult | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
-  const isDark     = theme === 'dark'
-  const gridColor  = isDark ? '#292524' : '#f5f5f4'
-  const tickColor  = isDark ? '#78716c' : '#a8a29e'
-  const tipStyle   = { background: isDark ? '#1c1917' : '#fff', border: `1px solid ${isDark ? '#44403c' : '#e7e5e4'}`, borderRadius: 8 }
+  const isDark    = theme === 'dark'
+  const gridColor = isDark ? '#292524' : '#f5f5f4'
+  const tickColor = isDark ? '#78716c' : '#a8a29e'
+  const tipStyle  = { background: isDark ? '#1c1917' : '#fff', border: `1px solid ${isDark ? '#44403c' : '#e7e5e4'}`, borderRadius: 8 }
 
   const CLASS_LABELS: Record<string, string> = {
     BIST_EQUITY:     language === 'tr' ? 'BIST Hisse'  : 'BIST Equity',
@@ -213,24 +202,24 @@ export default function BacktestPage() {
     CRYPTOCURRENCY:  language === 'tr' ? 'Kripto'      : 'Crypto',
     CASH_EQUIVALENT: language === 'tr' ? 'Nakit'       : 'Cash',
   }
-
   const PROFILE_LABELS: Record<string, string> = {
     conservative: t('profile.conservative'),
     balanced:     t('profile.balanced'),
     aggressive:   t('profile.aggressive'),
   }
-
   const HORIZON_LABELS: Record<string, string> = {
     short:  t('horizon.short'),
     medium: t('horizon.medium'),
     long:   t('horizon.long'),
   }
-
   const H2_MONTHS = language === 'tr'
     ? ['Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara']
     : ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-  // 1. Load assessment history
+  // asOfDate = 30 Haziran — portföy bu tarihteki veriye göre oluşturulur
+  const asOfDate = `${year}-06-30`
+
+  // 1. Anket listesi
   useEffect(() => {
     assessmentService.listAll()
       .then((list) => {
@@ -238,15 +227,12 @@ export default function BacktestPage() {
         if (list.length > 0) setSelectedAsmtId(list[0].assessmentId)
         setLoadingList(false)
       })
-      .catch(() => { setLoadingList(false) })
+      .catch(() => setLoadingList(false))
   }, [])
 
-  const selectedAsmt = assessments.find((a) => a.assessmentId === selectedAsmtId) ?? null
+  const selectedAsmt = assessments.find(a => a.assessmentId === selectedAsmtId) ?? null
 
-  // asOfDate = son gün Haziran (H1 sonu) — simulate endpoint bunu kullanır
-  const asOfDate = `${year}-06-30`
-
-  // ── Core backtest logic ──────────────────────────────────────────────────────
+  // ── Backtest core ──────────────────────────────────────────────────────────
   const runBacktest = useCallback(async () => {
     if (!selectedAsmtId) return
     abortRef.current?.abort()
@@ -255,26 +241,23 @@ export default function BacktestPage() {
     setLoading(true); setSoftErr(null); setFatalErr(null); setResult(null)
 
     try {
-      // Step 1: Get answers for selected assessment
+      // 1. Anket cevaplarını çek
       const answersData = await assessmentService.getAnswers(selectedAsmtId)
-      const answers = answersData.answers
 
-      // Step 2: Simulate portfolio as of H1-end date (Jun 30)
-      const simPortfolio: SimulatedPortfolio = await assessmentService.simulate(answers, asOfDate)
+      // 2. O tarihe göre portföy simüle et
+      const simPortfolio: SimulatedPortfolio = await assessmentService.simulate(
+        answersData.answers,
+        asOfDate,
+      )
 
-      // Step 3: Build instrument list from simulated portfolio
+      // 3. Varlık listesini düzleştir
       const instruments: { ticker: string; name: string; assetClass: string; weight: number }[] = []
       for (const alloc of simPortfolio.allocations) {
         const insts = alloc.instruments ?? []
         if (!insts.length) continue
         const perInst = (alloc.targetWeight / 100) / insts.length
         for (const inst of insts) {
-          instruments.push({
-            ticker:     inst.ticker,
-            name:       inst.name ?? inst.ticker,
-            assetClass: alloc.assetClass,
-            weight:     perInst,
-          })
+          instruments.push({ ticker: inst.ticker, name: inst.name ?? inst.ticker, assetClass: alloc.assetClass, weight: perInst })
         }
       }
 
@@ -283,35 +266,34 @@ export default function BacktestPage() {
         setLoading(false); return
       }
 
-      // Step 4: Fetch price history for each instrument & compute H1/H2 returns
+      // 4. Her varlık için yalnızca H2 fiyat verisi çek
       const holdings: HoldingResult[] = []
 
       for (const inst of instruments) {
         try {
-          const data = await poolService.getTicker(inst.ticker, '2y')
+          const data   = await poolService.getTicker(inst.ticker, '2y')
           const prices: PricePoint[] = (data.history ?? data.prices ?? data.chart ?? []).map(
             (p: { date: string; close: number }) => ({ date: p.date, close: p.close })
           )
-          const { h1, h2 } = splitHalves(prices, year)
+          const h2 = sliceH2(prices, year)
 
-          if (h1.length < 2 || h2.length < 2) {
-            setSoftErr(`${inst.ticker}: ${language === 'tr' ? 'yeterli fiyat verisi yok' : 'insufficient price data'}`)
+          if (h2.length < 2) {
+            setSoftErr(`${inst.ticker}: ${language === 'tr' ? 'H2 fiyat verisi yok' : 'no H2 price data'}`)
             continue
           }
 
-          const h1Return = (h1[h1.length - 1].close - h1[0].close) / h1[0].close
-          const h2Return = (h2[h2.length - 1].close - h2[0].close) / h2[0].close
-          const monthly  = monthlyH2Returns(h2)
+          const entryPrice = h2[0].close
+          const exitPrice  = h2[h2.length - 1].close
+          const h2Return   = (exitPrice - entryPrice) / entryPrice
+          const monthly    = monthlyH2Returns(h2)
 
           holdings.push({
             ticker:       inst.ticker,
             name:         inst.name,
             assetClass:   inst.assetClass,
             weight:       inst.weight,
-            priceH1Start: h1[0].close,
-            priceH1End:   h1[h1.length - 1].close,
-            priceH2End:   h2[h2.length - 1].close,
-            h1Return,
+            entryPrice,
+            exitPrice,
             h2Return,
             contribution: inst.weight * h2Return,
             monthlyH2:    monthly,
@@ -326,10 +308,9 @@ export default function BacktestPage() {
         setLoading(false); return
       }
 
-      const monthly       = portfolioMonthly(holdings)
-      const cumSeries     = toCumulative(monthly)
-      const totalH2       = holdings.reduce((s, h) => s + h.contribution, 0)
-      const totalH1       = holdings.reduce((s, h) => s + h.weight * h.h1Return, 0)
+      const monthly    = portfolioMonthly(holdings)
+      const cumSeries  = toCumulative(monthly)
+      const totalH2    = holdings.reduce((s, h) => s + h.contribution, 0)
 
       setResult({
         simPortfolio,
@@ -337,10 +318,9 @@ export default function BacktestPage() {
         asOfDate,
         holdings,
         totalH2,
-        totalH1,
         maxDrawdown: calcMaxDrawdown(cumSeries),
         sharpe:      calcSharpe(monthly),
-        winRate:     holdings.filter((h) => h.h2Return > 0).length / holdings.length,
+        winRate:     holdings.filter(h => h.h2Return > 0).length / holdings.length,
         cumulativeSeries: cumSeries,
       })
     } catch {
@@ -350,18 +330,18 @@ export default function BacktestPage() {
     }
   }, [selectedAsmtId, year, language, asOfDate])
 
+  // Chart data
   const cumulChartData = result?.cumulativeSeries.map((v, i) => ({
     month:  H2_MONTHS[i],
     getiri: parseFloat((v * 100).toFixed(2)),
   })) ?? []
 
-  const barData = result?.holdings.map((h) => ({
+  const barData = result?.holdings.map(h => ({
     ticker: h.ticker,
-    h1:     parseFloat((h.h1Return * 100).toFixed(2)),
-    h2:     parseFloat((h.h2Return * 100).toFixed(2)),
+    getiri: parseFloat((h.h2Return * 100).toFixed(2)),
   })) ?? []
 
-  // ── Loading list ─────────────────────────────────────────────────────────────
+  // ── Loading ─────────────────────────────────────────────────────────────────
   if (loadingList) {
     return (
       <AppLayout>
@@ -375,7 +355,6 @@ export default function BacktestPage() {
     )
   }
 
-  // ── No assessments ───────────────────────────────────────────────────────────
   if (assessments.length === 0) {
     return (
       <AppLayout>
@@ -388,11 +367,9 @@ export default function BacktestPage() {
     )
   }
 
-  const profileLabel = selectedAsmt ? (PROFILE_LABELS[selectedAsmt.profileType] ?? selectedAsmt.profileType) : ''
-  const horizonLabel = selectedAsmt ? (HORIZON_LABELS[selectedAsmt.investmentHorizon] ?? selectedAsmt.investmentHorizon) : ''
-
+  const profileLabel    = selectedAsmt ? (PROFILE_LABELS[selectedAsmt.profileType] ?? selectedAsmt.profileType) : ''
+  const horizonLabel    = selectedAsmt ? (HORIZON_LABELS[selectedAsmt.investmentHorizon] ?? selectedAsmt.investmentHorizon) : ''
   const simProfileLabel = result ? (PROFILE_LABELS[result.simPortfolio.profileType] ?? result.simPortfolio.profileType) : ''
-  const totalInstruments = result?.holdings.length ?? 0
 
   return (
     <AppLayout>
@@ -410,13 +387,13 @@ export default function BacktestPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Questionnaire selector */}
+            {/* Anket seçici */}
             <select
               value={selectedAsmtId}
-              onChange={(e) => { setSelectedAsmtId(e.target.value); setResult(null) }}
+              onChange={e => { setSelectedAsmtId(e.target.value); setResult(null) }}
               className="text-sm px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300"
             >
-              {assessments.map((a) => (
+              {assessments.map(a => (
                 <option key={a.assessmentId} value={a.assessmentId}>
                   {PROFILE_LABELS[a.profileType] ?? a.profileType}
                   {' · '}
@@ -430,10 +407,10 @@ export default function BacktestPage() {
               ))}
             </select>
 
-            {/* H1 / H2 badge */}
+            {/* H2 badge */}
             <div className="flex rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 text-xs">
-              <span className="px-3 py-2 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-medium">
-                {t('backtest.janJun')} {year}
+              <span className="px-3 py-2 bg-stone-100 dark:bg-stone-800 text-stone-400 dark:text-stone-500 font-medium">
+                {language === 'tr' ? 'Portföy kuruluşu' : 'Portfolio built'}: {asOfDate}
               </span>
               <span className="px-2 py-2 bg-stone-100 dark:bg-stone-800 text-stone-400">→</span>
               <span className="px-3 py-2 bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-300 font-medium">
@@ -441,13 +418,13 @@ export default function BacktestPage() {
               </span>
             </div>
 
-            {/* Year selector */}
+            {/* Yıl seçici */}
             <select
               value={year}
-              onChange={(e) => { setYear(parseInt(e.target.value)); setResult(null) }}
+              onChange={e => { setYear(parseInt(e.target.value)); setResult(null) }}
               className="text-sm px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300"
             >
-              {availableYears.map((y) => (
+              {availableYears.map(y => (
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
@@ -462,7 +439,7 @@ export default function BacktestPage() {
           </div>
         </div>
 
-        {/* ── Selected assessment info card ── */}
+        {/* ── Seçilen anket kartı ── */}
         {selectedAsmt && (
           <div className={`rounded-2xl border p-5 space-y-2 ${
             selectedAsmt.profileType === 'conservative'
@@ -492,45 +469,43 @@ export default function BacktestPage() {
               {t('backtest.asOfDate')}: <span className="font-mono font-medium text-stone-600 dark:text-stone-300">{asOfDate}</span>
               {' '}
               <span className="opacity-60">
-                ({language === 'tr'
-                  ? `Bu tarihte var olan piyasa verisine göre portföy oluşturulur`
-                  : `Portfolio will be built using market data available at this date`})
+                {language === 'tr'
+                  ? '— bu tarihte mevcut piyasa verisiyle portföy inşa edilir, Tem–Ara performansı ölçülür'
+                  : '— portfolio built with data available at this date, then Jul–Dec performance measured'}
               </span>
             </p>
           </div>
         )}
 
-        {/* ── Loading ── */}
+        {/* ── Yükleniyor ── */}
         {loading && (
           <div className="card flex flex-col items-center gap-3 py-10 justify-center text-stone-500 dark:text-stone-400">
             <Spinner size="md" />
             <span className="text-sm">{t('backtest.simulating')}</span>
-            <span className="text-xs text-stone-400 dark:text-stone-500">
+            <span className="text-xs opacity-60">
               {language === 'tr'
-                ? `${year} yfinance verisi çekiliyor…`
-                : `Fetching ${year} yfinance data…`}
+                ? `${year} H2 yfinance verisi çekiliyor…`
+                : `Fetching ${year} H2 yfinance data…`}
             </span>
           </div>
         )}
 
-        {/* ── Soft error ── */}
+        {/* ── Uyarılar ── */}
         {softErr && (
           <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-4 py-3">
             <p className="text-sm text-amber-800 dark:text-amber-300">⚠ {softErr}</p>
           </div>
         )}
-
-        {/* ── Fatal error ── */}
         {fatalErr && !loading && (
           <div className="card border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
             <p className="text-sm text-red-700 dark:text-red-400">⚠ {fatalErr}</p>
           </div>
         )}
 
-        {/* ── Results ── */}
+        {/* ── Sonuçlar ── */}
         {result && !loading && (
           <>
-            {/* Simulated portfolio badge */}
+            {/* Simüle portföy kartı */}
             <div className={`rounded-2xl border p-5 space-y-3 ${
               result.simPortfolio.profileType === 'conservative'
                 ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20'
@@ -551,12 +526,13 @@ export default function BacktestPage() {
                       {HORIZON_LABELS[result.simPortfolio.horizonType] ?? result.simPortfolio.horizonType}
                     </span>
                     <span className="text-xs text-stone-400 dark:text-stone-500">
-                      · {totalInstruments} {t('backtest.assets')}
+                      · {result.holdings.length} {t('backtest.assets')}
                     </span>
                   </div>
                   {result.simPortfolio.explanation && (
                     <p className="text-xs text-stone-400 dark:text-stone-500 mt-1 max-w-xl leading-relaxed">
-                      {result.simPortfolio.explanation.slice(0, 160)}{result.simPortfolio.explanation.length > 160 ? '…' : ''}
+                      {result.simPortfolio.explanation.slice(0, 160)}
+                      {result.simPortfolio.explanation.length > 160 ? '…' : ''}
                     </p>
                   )}
                 </div>
@@ -572,12 +548,11 @@ export default function BacktestPage() {
                   </span></p>
                 </div>
               </div>
-
               <div className="flex flex-wrap gap-2">
                 {result.simPortfolio.allocations
-                  .filter((a) => a.targetWeight > 0)
+                  .filter(a => a.targetWeight > 0)
                   .sort((a, b) => b.targetWeight - a.targetWeight)
-                  .map((a) => (
+                  .map(a => (
                     <span
                       key={a.assetClass}
                       className="text-xs px-2.5 py-1 rounded-full border font-medium"
@@ -593,24 +568,26 @@ export default function BacktestPage() {
               </div>
             </div>
 
-            {/* Stat cards */}
+            {/* Stat cards — H2 odaklı, H1 YOK */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard
                 label={`${t('backtest.h2Return')} (${result.year})`}
                 value={fmtPct(result.totalH2)}
-                sub={t('backtest.h2Sub')}
+                sub={language === 'tr' ? `Tem–Ara ${result.year} gerçek getiri` : `Jul–Dec ${result.year} actual return`}
                 positive={result.totalH2 >= 0}
               />
               <StatCard
-                label={`${t('backtest.h1Signal')} (${result.year})`}
-                value={fmtPct(result.totalH1)}
-                sub={t('backtest.h1Sub')}
-                positive={result.totalH1 >= 0}
+                label={language === 'tr' ? 'Beklenen vs Gerçek' : 'Expected vs Actual'}
+                value={fmtPct(result.totalH2 - result.simPortfolio.expectedReturn / 100)}
+                sub={language === 'tr'
+                  ? `Beklenen: ${result.simPortfolio.expectedReturn >= 0 ? '+' : ''}${result.simPortfolio.expectedReturn.toFixed(1)}%`
+                  : `Expected: ${result.simPortfolio.expectedReturn >= 0 ? '+' : ''}${result.simPortfolio.expectedReturn.toFixed(1)}%`}
+                positive={(result.totalH2 - result.simPortfolio.expectedReturn / 100) >= 0}
               />
               <StatCard
                 label={t('backtest.winners')}
                 value={`${Math.round(result.winRate * 100)}%`}
-                sub={`${result.holdings.filter((h) => h.h2Return > 0).length} / ${result.holdings.length} ${t('backtest.assets')}`}
+                sub={`${result.holdings.filter(h => h.h2Return > 0).length} / ${result.holdings.length} ${t('backtest.assets')}`}
                 positive={result.winRate >= 0.5}
               />
               <StatCard
@@ -623,7 +600,7 @@ export default function BacktestPage() {
 
             {/* Charts */}
             <div className="grid lg:grid-cols-2 gap-6">
-              {/* Cumulative return */}
+              {/* Kümülatif getiri */}
               <div className="card">
                 <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
                   {t('backtest.cumReturn')} · {t('backtest.julDec')} {result.year}
@@ -633,14 +610,15 @@ export default function BacktestPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                     <XAxis dataKey="month" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
                     <YAxis
-                      tickFormatter={(v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`}
+                      tickFormatter={v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`}
                       tick={{ fill: tickColor, fontSize: 10 }}
                       axisLine={false} tickLine={false}
                     />
                     <Tooltip content={<ChartTooltip />} contentStyle={tipStyle} />
                     <ReferenceLine y={0} stroke={isDark ? '#57534e' : '#d6d3d1'} strokeDasharray="4 4" />
                     <Line
-                      type="monotone" dataKey="getiri" name={language === 'tr' ? 'Portföy' : 'Portfolio'}
+                      type="monotone" dataKey="getiri"
+                      name={language === 'tr' ? 'Portföy' : 'Portfolio'}
                       stroke={result.totalH2 >= 0 ? '#639922' : '#E24B4A'}
                       strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }}
                     />
@@ -648,41 +626,36 @@ export default function BacktestPage() {
                 </ResponsiveContainer>
               </div>
 
-              {/* H1 signal vs H2 actual */}
+              {/* Varlık bazında H2 getirisi */}
               <div className="card">
                 <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-4">
-                  {t('backtest.h1vsH2')}
+                  {language === 'tr' ? `Varlık Bazlı Getiri · Tem–Ara ${result.year}` : `Asset Returns · Jul–Dec ${result.year}`}
                 </h3>
                 <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={barData} barSize={12} barGap={2}>
+                  <BarChart data={barData} barSize={18}>
                     <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                     <XAxis dataKey="ticker" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
                     <YAxis
-                      tickFormatter={(v) => `${v}%`}
+                      tickFormatter={v => `${v}%`}
                       tick={{ fill: tickColor, fontSize: 10 }}
                       axisLine={false} tickLine={false}
                     />
                     <Tooltip
                       contentStyle={tipStyle}
-                      formatter={(v: number, name: string) => [
+                      formatter={(v: number) => [
                         `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`,
-                        name === 'h1' ? t('backtest.h1Period') : t('backtest.h2ReturnCol'),
+                        language === 'tr' ? 'H2 Getiri' : 'H2 Return',
                       ]}
                     />
                     <ReferenceLine y={0} stroke={isDark ? '#57534e' : '#d6d3d1'} />
-                    <Bar dataKey="h1" name="h1" fill={isDark ? '#44403c' : '#d6d3d1'} radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="h2" name="h2" radius={[3, 3, 0, 0]}>
+                    <Bar dataKey="getiri" radius={[4, 4, 0, 0]}>
                       {barData.map((entry, i) => (
-                        <Cell key={i} fill={entry.h2 >= 0 ? '#639922' : '#E24B4A'} />
+                        <Cell key={i} fill={entry.getiri >= 0 ? '#639922' : '#E24B4A'} />
                       ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
                 <div className="flex gap-4 mt-3 text-xs text-stone-400 dark:text-stone-500">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm" style={{ background: isDark ? '#44403c' : '#d6d3d1' }} />
-                    {t('backtest.h1Period')}
-                  </span>
                   <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-sm bg-green-600" />
                     {t('backtest.h2Positive')}
@@ -695,14 +668,14 @@ export default function BacktestPage() {
               </div>
             </div>
 
-            {/* Asset table */}
+            {/* Varlık tablosu — H1 kolonları YOK */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium text-stone-500 dark:text-stone-400 uppercase tracking-widest">
                   {t('backtest.assetDetail')}
                 </h3>
                 <span className="text-xs text-stone-400 dark:text-stone-500">
-                  yfinance · {result.year} · {result.holdings.length} {t('backtest.assets')}
+                  yfinance · {result.year} H2 · {result.holdings.length} {t('backtest.assets')}
                 </span>
               </div>
               <div className="overflow-x-auto">
@@ -712,8 +685,12 @@ export default function BacktestPage() {
                       <th className="text-left pb-3 pr-4">{t('backtest.assetCol')}</th>
                       <th className="text-left pb-3 pr-4">{t('backtest.classCol')}</th>
                       <th className="text-right pb-3 pr-4">{t('backtest.weightCol')}</th>
-                      <th className="text-right pb-3 pr-4">{t('backtest.h1StartPrice')}</th>
-                      <th className="text-right pb-3 pr-4">{t('backtest.h1Return')}</th>
+                      <th className="text-right pb-3 pr-4">
+                        {language === 'tr' ? 'Giriş Fiyatı (1 Tem)' : 'Entry Price (1 Jul)'}
+                      </th>
+                      <th className="text-right pb-3 pr-4">
+                        {language === 'tr' ? 'Çıkış Fiyatı (31 Ara)' : 'Exit Price (31 Dec)'}
+                      </th>
                       <th className="text-right pb-3 pr-4">{t('backtest.h2ReturnCol')}</th>
                       <th className="text-right pb-3">{t('backtest.contribution')}</th>
                     </tr>
@@ -721,8 +698,8 @@ export default function BacktestPage() {
                   <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
                     {[...result.holdings]
                       .sort((a, b) => b.h2Return - a.h2Return)
-                      .map((h) => {
-                        const clrCls = CLASS_COLORS[h.assetClass] ?? '#888'
+                      .map(h => {
+                        const clr = CLASS_COLORS[h.assetClass] ?? '#888'
                         return (
                           <tr key={h.ticker} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors">
                             <td className="py-3 pr-4">
@@ -734,7 +711,7 @@ export default function BacktestPage() {
                             <td className="py-3 pr-4">
                               <span
                                 className="text-xs px-2 py-0.5 rounded-full border font-medium"
-                                style={{ color: clrCls, borderColor: `${clrCls}40`, background: `${clrCls}15` }}
+                                style={{ color: clr, borderColor: `${clr}40`, background: `${clr}15` }}
                               >
                                 {CLASS_LABELS[h.assetClass] ?? h.assetClass}
                               </span>
@@ -743,10 +720,10 @@ export default function BacktestPage() {
                               {(h.weight * 100).toFixed(1)}%
                             </td>
                             <td className="py-3 pr-4 text-right text-stone-400 dark:text-stone-500 font-mono text-xs">
-                              {h.priceH1Start.toFixed(2)}
+                              {h.entryPrice.toFixed(2)}
                             </td>
-                            <td className={`py-3 pr-4 text-right text-xs font-medium ${h.h1Return >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                              {fmtPct(h.h1Return)}
+                            <td className="py-3 pr-4 text-right text-stone-400 dark:text-stone-500 font-mono text-xs">
+                              {h.exitPrice.toFixed(2)}
                             </td>
                             <td className={`py-3 pr-4 text-right font-medium ${h.h2Return >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                               {fmtPct(h.h2Return)}
@@ -772,7 +749,7 @@ export default function BacktestPage() {
               </div>
             </div>
 
-            {/* Validation verdict */}
+            {/* Verdict */}
             <div className={`card flex gap-4 items-start ${
               result.totalH2 >= 0.08
                 ? 'border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/20'
@@ -801,19 +778,16 @@ export default function BacktestPage() {
                 </p>
                 <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">
                   {result.totalH2 >= 0.08
-                    ? t('backtest.resultGood')
-                        .replace('{ret}', fmtPct(result.totalH2))
-                        .replace('{year}', String(result.year))
-                        .replace('{h1}', fmtPct(result.totalH1))
+                    ? (language === 'tr'
+                        ? `${asOfDate} tarihinde kurulan portföy H2 ${result.year}'de ${fmtPct(result.totalH2)} getiri sağladı — beklenen getiri (${result.simPortfolio.expectedReturn.toFixed(1)}%) ile karşılaştırıldığında güçlü bir sonuç.`
+                        : `Portfolio built on ${asOfDate} returned ${fmtPct(result.totalH2)} in H2 ${result.year} — strong result vs expected ${result.simPortfolio.expectedReturn.toFixed(1)}%.`)
                     : result.totalH2 >= 0
-                      ? t('backtest.resultOk')
-                          .replace('{ret}', fmtPct(result.totalH2))
-                          .replace('{year}', String(result.year))
-                          .replace('{h1}', fmtPct(result.totalH1))
-                      : t('backtest.resultBad')
-                          .replace('{ret}', fmtPct(result.totalH2))
-                          .replace('{year}', String(result.year))
-                          .replace('{h1}', fmtPct(result.totalH1))}
+                      ? (language === 'tr'
+                          ? `${asOfDate} tarihinde kurulan portföy H2 ${result.year}'de ${fmtPct(result.totalH2)} getiri sağladı — pozitif ama mütevazı bir sonuç.`
+                          : `Portfolio built on ${asOfDate} returned ${fmtPct(result.totalH2)} in H2 ${result.year} — positive but modest.`)
+                      : (language === 'tr'
+                          ? `${asOfDate} tarihinde kurulan portföy H2 ${result.year}'de ${fmtPct(result.totalH2)} getiri sağladı — dönem zorlu geçti.`
+                          : `Portfolio built on ${asOfDate} returned ${fmtPct(result.totalH2)} in H2 ${result.year} — a difficult period.`)}
                 </p>
               </div>
             </div>
