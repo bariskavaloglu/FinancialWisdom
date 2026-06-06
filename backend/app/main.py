@@ -75,20 +75,20 @@ origins = [
     "http://localhost:5173",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
+    "https://financialwisdom.me",
+    "https://www.financialwisdom.me",
 ]
-if settings.ENVIRONMENT == "production":
-    origins = [
-        "https://financialwisdom.me",
-        "https://www.financialwisdom.me",
-        settings.FRONTEND_URL,
-    ]
+if settings.FRONTEND_URL and settings.FRONTEND_URL not in origins:
+    origins.append(settings.FRONTEND_URL)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
