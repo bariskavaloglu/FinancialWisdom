@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Disclaimer } from '@/components/ui/index'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
 import type { AssessmentResult } from '@/types'
+import { buildPortfolioExplanation } from '@/utils/portfolioExplanation'
 
 export default function ProfileResultPage() {
 
@@ -61,12 +62,18 @@ export default function ProfileResultPage() {
           </div>
         </div>
 
-        {result.explanation && (
-          <div className="card">
-            <p className="text-xs text-stone-400 uppercase tracking-widest mb-2">{t('banner.whyThis')}</p>
-            <p className="text-stone-600 dark:text-stone-400 text-sm leading-relaxed">{result.explanation}</p>
-          </div>
-        )}
+        {(() => {
+          const why = buildPortfolioExplanation(
+            { profileType: result.profileType, horizonType: result.investmentHorizon },
+            t, language,
+          ) || result.explanation
+          return why ? (
+            <div className="card">
+              <p className="text-xs text-stone-400 uppercase tracking-widest mb-2">{t('banner.whyThis')}</p>
+              <p className="text-stone-600 dark:text-stone-400 text-sm leading-relaxed">{why}</p>
+            </div>
+          ) : null
+        })()}
 
         <div className="flex gap-3">
           <Button variant="secondary" className="flex-1" onClick={() => navigate('/questionnaire')}>

@@ -212,8 +212,7 @@ function FactorOverviewChart({ items }: { items: PoolItem[] }) {
 // ─── Panel: Daily change mini heat strip ─────────────────────────────────────
 
 function DailyChangeHeatmap({ items }: { items: PoolItem[] }) {
-  const { t, theme } = useThemeLang()
-  const isDark = theme === 'dark'
+  const { t } = useThemeLang()
   const sorted = [...items].sort((a, b) => (b.dailyChange ?? 0) - (a.dailyChange ?? 0))
   return (
     <div className="card">
@@ -229,13 +228,7 @@ function DailyChangeHeatmap({ items }: { items: PoolItem[] }) {
             : chg < 0
               ? `rgba(239,68,68,${0.1 + intensity * 0.5})`
               : 'rgba(107,114,128,0.1)'
-          // Dark modda arka plan yeşil/kırmızı tonlu olduğundan
-          // koyu yazı rengi çakışır → beyaza yakın renk kullan
-          const textColor = isDark
-            ? (chg > 0 ? '#bbf7d0' : chg < 0 ? '#fecaca' : '#d1d5db')
-            : (chg > 0 ? '#15803d' : chg < 0 ? '#b91c1c' : '#6b7280')
-          // Ticker rengi de dark'ta daha açık olsun
-          const tickerColor = isDark ? '#f5f5f4' : '#44403c'
+          const textColor = chg > 0 ? '#15803d' : chg < 0 ? '#b91c1c' : '#6b7280'
           return (
             <div
               key={item.ticker}
@@ -243,7 +236,7 @@ function DailyChangeHeatmap({ items }: { items: PoolItem[] }) {
               style={{ background: bg }}
               title={`${item.name}: ${item.dailyChange?.toFixed(2) ?? '—'}%`}
             >
-              <div className="text-xs font-mono font-medium" style={{ color: tickerColor }}>
+              <div className="text-xs font-mono font-medium text-stone-700 dark:text-stone-300">
                 {item.ticker.replace('.IS', '').replace('-USD', '')}
               </div>
               <div className="text-sm font-semibold mt-0.5" style={{ color: textColor }}>

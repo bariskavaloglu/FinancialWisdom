@@ -126,68 +126,12 @@ Portföy üretim motoru (`portfolio_engine.py`) ve questionnaire mantığı hiç
 **Harmanlama:** Orijinal faktörler korunur, TA skorları ile blend edilir.  
 pandas-ta kurulu değilse sadece orijinal faktörler kullanılır (graceful fallback).
 
-### 2. Koyu Tema Düzeltmeleri
 
-Aşağıdaki sayfalarda eksik `dark:` class'ları tamamlandı:
-- `AdminPage`, `LoginPage`, `VerifyEmailPage`, `NotFoundPage`
-- `ProfileResultPage`, `AssetDetailPage`, `MarketPoolPage`, `QuestionnairePage`
 
-### 3. Sistem Diline/Temasına Göre Otomatik Başlangıç
 
-`ThemeLanguageContext.tsx` güncellendi:
 
-- **İlk ziyarette:** `window.matchMedia('prefers-color-scheme: dark')` ile tema, `navigator.language` ile dil otomatik seçilir
-- **Sonraki ziyaretlerde:** localStorage'daki kullanıcı tercihi önceliklidir
-- **Canlı takip:** OS teması değişince uygulama güncellenir (kullanıcı manuel seçmemişse)
 
-### 4. Admin Override Sistemi
 
-**Yeni dosyalar:**
-- `backend/app/models/admin_override.py` — `AdminOverride` veritabanı modeli
-- `backend/alembic/versions/001_add_admin_overrides.py` — Migration
-- `backend/create_admin.py` — Admin hesabı oluşturma scripti
-
-**Güncellenen dosyalar:**
-- `backend/app/routers/admin.py` — Override CRUD endpoint'leri
-- `backend/app/routers/assessments.py` — Anket submitinde override'ları yükle
-- `backend/app/services/portfolio_engine.py` — `extra_guardrails` parametresi
-- `backend/app/models/user.py` — `admin_overrides` ilişkisi
-- `backend/app/models/__init__.py` — `AdminOverride` import
-- `backend/app/schemas/admin.py` — Override şemaları
-- `frontend/src/pages/AdminPage.tsx` — Tam yeniden yazıldı
-- `frontend/src/services/index.ts` — Override API çağrıları
-- `frontend/src/types/index.ts` — `AdminOverride`, `UserWithOverrides` tipleri
-
----
-
-## Veritabanı Migrasyonu
-
-Mevcut bir veritabanı varsa migration çalıştırın:
-
-```bash
-cd backend
-alembic upgrade head
-```
-
-Yeni kurulumda `Base.metadata.create_all()` startup'ta otomatik çalışır — migration gerekmez.
-
----
-
-## API Dokümantasyonu
-
-Sunucu çalışırken: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-### Yeni Admin Endpoint'leri
-
-| Yöntem | URL | Açıklama |
-|--------|-----|---------|
-| `GET` | `/api/v1/admin/overrides` | Tüm aktif override'lar |
-| `GET` | `/api/v1/admin/overrides/user/{user_id}` | Kullanıcı override'ları |
-| `POST` | `/api/v1/admin/overrides` | Yeni override oluştur |
-| `PUT` | `/api/v1/admin/overrides/{id}` | Override güncelle |
-| `DELETE` | `/api/v1/admin/overrides/{id}` | Override deaktif et |
-
----
 
 ## Mimari
 
@@ -209,7 +153,7 @@ backend/
 
 ---
 
-## Teknoloji Yığını
+## Teknoloji 
 
 | Katman | Teknoloji |
 |--------|-----------|

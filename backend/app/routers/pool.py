@@ -164,6 +164,9 @@ def _build_ticker_meta() -> dict[str, dict]:
         "IAU":     {"name": "iShares Gold Trust",     "assetClass": "COMMODITY",       "exchange": "NYSE"},
         "BTC-USD": {"name": "Bitcoin",                "assetClass": "CRYPTOCURRENCY",  "exchange": "CRYPTO"},
         "ETH-USD": {"name": "Ethereum",               "assetClass": "CRYPTOCURRENCY",  "exchange": "CRYPTO"},
+        "BNB-USD": {"name": "BNB",                     "assetClass": "CRYPTOCURRENCY",  "exchange": "CRYPTO"},
+        "SOL-USD": {"name": "Solana",                 "assetClass": "CRYPTOCURRENCY",  "exchange": "CRYPTO"},
+        "ADA-USD": {"name": "Cardano",                "assetClass": "CRYPTOCURRENCY",  "exchange": "CRYPTO"},
         "BIL":     {"name": "SPDR 1-3 Month T-Bill", "assetClass": "CASH_EQUIVALENT", "exchange": "NYSE"},
         "SGOV":    {"name": "iShares 0-3M Treasury", "assetClass": "CASH_EQUIVALENT", "exchange": "NYSE"},
     })
