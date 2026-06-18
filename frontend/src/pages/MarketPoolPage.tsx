@@ -307,7 +307,7 @@ function PoolTable({
     <div className="card">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-stone-500 uppercase tracking-widest">
-          {t('pool.allInstruments')} ({items.length})
+          {t('pool.allInstruments')} ({"120"})
         </h3>
         <button
           className="text-xs text-amber-700 hover:underline"
