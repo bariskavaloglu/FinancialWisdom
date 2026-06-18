@@ -88,6 +88,14 @@ const translations: Record<Language, Record<string, string>> = {
     'why.intro':                'Based on your questionnaire responses, a {profile} profile with a {horizon} investment horizon was determined. Your portfolio was built directly from your answers — not from a fixed template.',
     'why.allocs':               ' Primary allocations: {allocs}.',
     'why.excluded':             ' The following asset classes were excluded based on your preferences: {excluded}.',
+    'why.sel.algo':             'Selected by rules-based portfolio algorithm.',
+    'why.sel.momentum':         'Strong price momentum (12-month return)',
+    'why.sel.qualityRoe':       'High quality score (strong ROE)',
+    'why.sel.qualityCalmar':    'Consistent uptrend quality (Calmar-style score)',
+    'why.sel.volatility':       'Low volatility — capital preservation',
+    'why.sel.valuePb':          'Attractive valuation (low P/B ratio)',
+    'why.sel.valueEntry':       'Attractive entry point (below 52-week high)',
+    'why.sel.balanced':         'Balanced factor profile — portfolio diversification',
     'banner.noData':            'No data',
 
     // Stat Cards
@@ -489,6 +497,14 @@ const translations: Record<Language, Record<string, string>> = {
     'why.intro':                'Anket yanıtlarınıza göre, {horizon} yatırım ufkuna sahip {profile} bir profil belirlendi. Portföyünüz sabit bir şablondan değil, doğrudan yanıtlarınızdan oluşturuldu.',
     'why.allocs':               ' Başlıca dağılımlar: {allocs}.',
     'why.excluded':             ' Tercihlerinize göre şu varlık sınıfları hariç tutuldu: {excluded}.',
+    'why.sel.algo':             'Kural tabanlı portföy algoritması tarafından seçildi.',
+    'why.sel.momentum':         'Güçlü fiyat momentumu (12 aylık getiri)',
+    'why.sel.qualityRoe':       'Yüksek kalite skoru (güçlü ROE)',
+    'why.sel.qualityCalmar':    'İstikrarlı yükseliş kalitesi (Calmar tarzı skor)',
+    'why.sel.volatility':       'Düşük volatilite — sermaye koruması',
+    'why.sel.valuePb':          'Cazip değerleme (düşük PD/DD oranı)',
+    'why.sel.valueEntry':       'Cazip giriş noktası (52 haftalık zirvenin altında)',
+    'why.sel.balanced':         'Dengeli faktör profili — portföy çeşitlendirmesi',
     'banner.noData':            'Veri yok',
 
     // Stat Cards

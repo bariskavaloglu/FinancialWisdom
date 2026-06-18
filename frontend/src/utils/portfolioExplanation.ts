@@ -82,3 +82,23 @@ export function buildPortfolioExplanation(
 
   return text
 }
+
+// ── "Neden seçildi?" gerekçeleri ────────────────────────────────────────────
+// Backend gerekçeleri sabit İngilizce metin olarak üretir (instruments.py /
+// portfolio_engine.py _why_selected). Bilinen tüm varyantları i18n anahtarına
+// eşleyip aktif dile çeviririz; eşleşmezse ham metin gösterilir.
+const WHY_SELECTED_KEY: Record<string, string> = {
+  'Selected by rules-based portfolio algorithm.':         'why.sel.algo',
+  'Strong price momentum (12-month return)':              'why.sel.momentum',
+  'High quality score (strong ROE)':                      'why.sel.qualityRoe',
+  'Consistent uptrend quality (Calmar-style score)':      'why.sel.qualityCalmar',
+  'Low volatility — capital preservation':                'why.sel.volatility',
+  'Attractive valuation (low P/B ratio)':                 'why.sel.valuePb',
+  'Attractive entry point (below 52-week high)':          'why.sel.valueEntry',
+  'Balanced factor profile — portfolio diversification':  'why.sel.balanced',
+}
+
+export function translateWhySelected(reason: string, t: (k: string) => string): string {
+  const key = WHY_SELECTED_KEY[reason]
+  return key ? t(key) : reason
+}
