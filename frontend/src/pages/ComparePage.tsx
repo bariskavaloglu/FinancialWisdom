@@ -10,7 +10,6 @@ import {
   ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
 } from 'recharts'
 import type { Portfolio } from '@/types'
-import { buildPortfolioExplanation } from '@/utils/portfolioExplanation'
 
 const ASSET_KEYS = ['BIST_EQUITY','SP500_EQUITY','COMMODITY','CRYPTOCURRENCY','CASH_EQUIVALENT'] as const
 
@@ -98,17 +97,11 @@ function PortfolioCard({
       </div>
 
       {/* Explanation snippet */}
-      {(() => {
-        const why = buildPortfolioExplanation(
-          { profileType: portfolio.profileType, horizonType: portfolio.horizonType, allocations: portfolio.allocations },
-          t, language,
-        ) || portfolio.explanation
-        return why ? (
-          <p className="text-xs text-stone-500 dark:text-stone-400 italic border-t border-stone-100 dark:border-stone-800 pt-3 line-clamp-3">
-            {why}
-          </p>
-        ) : null
-      })()}
+      {portfolio.explanation && (
+        <p className="text-xs text-stone-500 dark:text-stone-400 italic border-t border-stone-100 dark:border-stone-800 pt-3 line-clamp-3">
+          {portfolio.explanation}
+        </p>
+      )}
     </div>
   )
 }

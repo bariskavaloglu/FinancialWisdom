@@ -5,7 +5,6 @@ import { Spinner, StalenessWarning } from '@/components/ui/index'
 import { useApi } from '@/hooks/useApi'
 import { instrumentService } from '@/services'
 import { useThemeLang } from '@/context/ThemeLanguageContext'
-import { translateWhySelected } from '@/utils/portfolioExplanation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { useState, useEffect } from 'react'
 
@@ -174,7 +173,7 @@ export default function AssetDetailPage() {
             <ul className="space-y-2">
               {data.whySelected.map((reason, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-stone-500">
-                  <span className="text-green-400 mt-0.5">✓</span> {translateWhySelected(reason, t)}
+                  <span className="text-green-400 mt-0.5">✓</span> {reason}
                 </li>
               ))}
             </ul>
