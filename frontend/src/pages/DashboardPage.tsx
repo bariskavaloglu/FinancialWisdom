@@ -15,6 +15,7 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis,
 } from 'recharts'
 import type { AssetClass, Portfolio, AssessmentListItem } from '@/types'
+import { buildPortfolioExplanation } from '@/utils/portfolioExplanation'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -338,14 +339,20 @@ function ProfileBanner({ assessment, portfolio }: { assessment: AssessmentListIt
       </div>
 
       {/* Explanation */}
-      {portfolio.explanation && (
-        <div className="bg-white/60 dark:bg-stone-900/40 rounded-xl px-4 py-3 border border-white/80 dark:border-stone-700/50">
-          <p className="text-[10px] text-stone-400 dark:text-stone-500 uppercase tracking-wider font-semibold mb-1">
-            {t('banner.whyThis')}
-          </p>
-          <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">{portfolio.explanation}</p>
-        </div>
-      )}
+      {(() => {
+        const why = buildPortfolioExplanation(
+          { profileType: portfolio.profileType, horizonType: portfolio.horizonType, allocations: portfolio.allocations },
+          t, language,
+        ) || portfolio.explanation
+        return why ? (
+          <div className="bg-white/60 dark:bg-stone-900/40 rounded-xl px-4 py-3 border border-white/80 dark:border-stone-700/50">
+            <p className="text-[10px] text-stone-400 dark:text-stone-500 uppercase tracking-wider font-semibold mb-1">
+              {t('banner.whyThis')}
+            </p>
+            <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed">{why}</p>
+          </div>
+        ) : null
+      })()}
     </div>
   )
 }
