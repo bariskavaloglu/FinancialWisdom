@@ -85,6 +85,9 @@ const translations: Record<Language, Record<string, string>> = {
     'banner.avgFactorProfile':  'Avg Factor Profile',
     'banner.riskScore':         'Risk score',
     'banner.whyThis':           'Why this portfolio?',
+    'why.intro':                'Based on your questionnaire responses, a {profile} profile with a {horizon} investment horizon was determined. Your portfolio was built directly from your answers — not from a fixed template.',
+    'why.allocs':               ' Primary allocations: {allocs}.',
+    'why.excluded':             ' The following asset classes were excluded based on your preferences: {excluded}.',
     'banner.noData':            'No data',
 
     // Stat Cards
@@ -483,6 +486,9 @@ const translations: Record<Language, Record<string, string>> = {
     'banner.avgFactorProfile':  'Ort. Faktör Profili',
     'banner.riskScore':         'Risk skoru',
     'banner.whyThis':           'Neden bu portföy?',
+    'why.intro':                'Anket yanıtlarınıza göre, {horizon} yatırım ufkuna sahip {profile} bir profil belirlendi. Portföyünüz sabit bir şablondan değil, doğrudan yanıtlarınızdan oluşturuldu.',
+    'why.allocs':               ' Başlıca dağılımlar: {allocs}.',
+    'why.excluded':             ' Tercihlerinize göre şu varlık sınıfları hariç tutuldu: {excluded}.',
     'banner.noData':            'Veri yok',
 
     // Stat Cards
