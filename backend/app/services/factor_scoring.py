@@ -1,7 +1,7 @@
 """
-Factor scoring engine — pandas-ta ile güçlendirilmiş versiyon
+Factor scoring engine — fin-primitives ile güçlendirilmiş versiyon
 
-Teknik analiz katmanı (pandas-ta):
+Teknik analiz katmanı (fin-primitives):
   RSI(14)      → aşırı satım/alım durumu → momentum sinyali
   MACD         → trend yönü ve gücü      → trend kalitesi
   BB %B        → Bollinger Band konumu   → oynaklık ve aşırılık
@@ -109,7 +109,7 @@ def _quality_raw(price_history: list[dict]) -> float | None:
         return None
 
 
-# ── Teknik analiz faktörleri (pandas-ta) ────────────────────────────────────
+# ── Teknik analiz faktörleri (fin-primitives) ───────────────────────────────
 
 def _build_df(price_history: list[dict]) -> "pd.DataFrame | None":
     """price_history listini pandas DataFrame'e çevirir."""
@@ -123,11 +123,19 @@ def _build_df(price_history: list[dict]) -> "pd.DataFrame | None":
         return None
 
 
+def _bbands_last(close: "pd.Series", length: int = 20, std: float = 2.0) -> tuple[float, float, float]:
+    """Son bar için Bollinger bantları (alt, orta, üst); orta = SMA, std örneklem std'si."""
+    import fin_primitives as fp
+    mid = float(fp.sma(close, length).iloc[-1])
+    sd = float(close.rolling(length).std().iloc[-1])
+    return mid - std * sd, mid, mid + std * sd
+
+
 def _ta_momentum_score(df: "pd.DataFrame") -> float | None:
     """RSI(14) + MACD → momentum TA skoru (0–100)."""
     try:
-        import pandas_ta as ta
-        rsi = ta.rsi(df["close"], length=14)
+        import fin_primitives as fp
+        rsi = fp.rsi(df["close"], 14)
         if rsi is None or rsi.empty:
             return None
         rsi_val = float(rsi.iloc[-1])
@@ -136,14 +144,12 @@ def _ta_momentum_score(df: "pd.DataFrame") -> float | None:
         # RSI: 30 altı kötü, 70 üstü iyi
         rsi_score = max(0.0, min(100.0, (rsi_val - 30) / 40 * 100))
 
-        macd_df = ta.macd(df["close"])
+        # MACD(12, 26, 9) histogramı
+        macd_hist = fp.macd(df["close"], 12, 26, 9)
         macd_hist_score = 50.0
-        if macd_df is not None and not macd_df.empty:
-            hist_col = [c for c in macd_df.columns if "MACDh" in c]
-            if hist_col:
-                hist_val = float(macd_df[hist_col[0]].iloc[-1])
-                if not pd.isna(hist_val):
-                    macd_hist_score = 75.0 if hist_val > 0 else 25.0
+        hist_val = float(macd_hist.iloc[-1])
+        if not pd.isna(hist_val):
+            macd_hist_score = 75.0 if hist_val > 0 else 25.0
 
         return rsi_score * 0.6 + macd_hist_score * 0.4
     except ImportError:
@@ -156,8 +162,9 @@ def _ta_momentum_score(df: "pd.DataFrame") -> float | None:
 def _ta_volatility_score(df: "pd.DataFrame") -> float | None:
     """ATR(14) + Bollinger Band genişliği → volatilite TA skoru (0–100)."""
     try:
-        import pandas_ta as ta
-        atr = ta.atr(df["high"], df["low"], df["close"], length=14)
+        import fin_primitives as fp
+        # ATR(14), Wilder (RMA) yumuşatma
+        atr = fp.compute("wilder_smoothed_range", df["close"], 14, high=df["high"], low=df["low"])
         atr_score = 50.0
         if atr is not None and not atr.empty:
             atr_val = float(atr.iloc[-1])
@@ -166,19 +173,11 @@ def _ta_volatility_score(df: "pd.DataFrame") -> float | None:
                 atr_pct   = atr_val / price * 100
                 atr_score = max(0.0, min(100.0, (8.0 - atr_pct) / 6.0 * 100))
 
-        bb = ta.bbands(df["close"], length=20)
+        bbl, bbm, bbu = _bbands_last(df["close"], 20)
         bb_score = 50.0
-        if bb is not None and not bb.empty:
-            bbu_col = [c for c in bb.columns if "BBU" in c]
-            bbl_col = [c for c in bb.columns if "BBL" in c]
-            bbm_col = [c for c in bb.columns if "BBM" in c]
-            if bbu_col and bbl_col and bbm_col:
-                bbu = float(bb[bbu_col[0]].iloc[-1])
-                bbl = float(bb[bbl_col[0]].iloc[-1])
-                bbm = float(bb[bbm_col[0]].iloc[-1])
-                if not any(pd.isna(v) for v in [bbu, bbl, bbm]) and bbm > 0:
-                    bbw      = (bbu - bbl) / bbm * 100
-                    bb_score = max(0.0, min(100.0, (40.0 - bbw) / 30.0 * 100))
+        if not any(pd.isna(v) for v in [bbu, bbl, bbm]) and bbm > 0:
+            bbw      = (bbu - bbl) / bbm * 100
+            bb_score = max(0.0, min(100.0, (40.0 - bbw) / 30.0 * 100))
 
         return atr_score * 0.5 + bb_score * 0.5
     except ImportError:
@@ -191,16 +190,7 @@ def _ta_volatility_score(df: "pd.DataFrame") -> float | None:
 def _ta_value_score(df: "pd.DataFrame") -> float | None:
     """Bollinger Band %B → değerleme TA skoru (0–100). Alt band = ucuz = yüksek skor."""
     try:
-        import pandas_ta as ta
-        bb = ta.bbands(df["close"], length=20)
-        if bb is None or bb.empty:
-            return None
-        bbu_col = [c for c in bb.columns if "BBU" in c]
-        bbl_col = [c for c in bb.columns if "BBL" in c]
-        if not (bbu_col and bbl_col):
-            return None
-        bbu   = float(bb[bbu_col[0]].iloc[-1])
-        bbl   = float(bb[bbl_col[0]].iloc[-1])
+        bbl, _, bbu = _bbands_last(df["close"], 20)
         price = float(df["close"].iloc[-1])
         if pd.isna(bbu) or pd.isna(bbl) or (bbu - bbl) == 0:
             return None
@@ -216,26 +206,21 @@ def _ta_value_score(df: "pd.DataFrame") -> float | None:
 def _ta_quality_score(df: "pd.DataFrame") -> float | None:
     """ADX(14) → trend gücü TA skoru (0–100). Güçlü yükselen trend = kalite."""
     try:
-        import pandas_ta as ta
-        adx_df = ta.adx(df["high"], df["low"], df["close"], length=14)
-        if adx_df is None or adx_df.empty:
+        import fin_primitives as fp
+        high, low, close = df["high"], df["low"], df["close"]
+        adx = fp.compute("adx", close, 14, high=high, low=low)
+        if adx is None or adx.empty:
             return None
-        adx_col = [c for c in adx_df.columns if c.startswith("ADX_")]
-        dmp_col = [c for c in adx_df.columns if "DMP" in c]
-        dmn_col = [c for c in adx_df.columns if "DMN" in c]
-        if not adx_col:
-            return None
-        adx_val = float(adx_df[adx_col[0]].iloc[-1])
+        adx_val = float(adx.iloc[-1])
         if pd.isna(adx_val):
             return None
 
         adx_strength = max(0.0, min(100.0, adx_val * 2))
         direction_bonus = 0.0
-        if dmp_col and dmn_col:
-            dmp = float(adx_df[dmp_col[0]].iloc[-1])
-            dmn = float(adx_df[dmn_col[0]].iloc[-1])
-            if not (pd.isna(dmp) or pd.isna(dmn)):
-                direction_bonus = 20.0 if dmp > dmn else -20.0
+        # dmi = +DI - -DI, yani DMP > DMN  <=>  dmi > 0
+        dmi_val = float(fp.compute("dmi", close, 14, high=high, low=low).iloc[-1])
+        if not pd.isna(dmi_val):
+            direction_bonus = 20.0 if dmi_val > 0 else -20.0
 
         return max(0.0, min(100.0, adx_strength + direction_bonus))
     except ImportError:
